@@ -1,233 +1,72 @@
 %%%% Joint definitions for Gait2392 ankle-foot:
 %%%% https://simtk-confluence.stanford.edu:8443/display/OpenSim33/OpenSim+Models#OpenSimModels-Joints
 %%%% 
-%%%% Each appear to be classs <CustomJoint> which can accept 3 arbitrary (potentially non-orthogonal)
-%%%% rotation axes, followed by 3-translations
+%%%% Each is <CustomJoint> which can accept 3 arbitrary (potentially non-orthogonal)
+%%%% rotation axes, followed by 3-translations. The talocrural and subtalar
+%%%% joints each are 1 oblique axis in the parent body 
 %%%%
-%%%% In this case each of the talocrural and subtalar
-%%%% joints has 1 oblique, body-fixed unit vector at a specified origin so,
-%%%% given 1 input joint angles:
-%%%% (1) convert angle-axis to DCMs, and extract 3DOF XYZ component rotations
+%%%%  Steps:
+%%%% (1) convert helical to 3 cardan angles (3-1-2 ZXY sequence)
 %%%% (2) compute DCM of total ankle complex (talocrural followed by subtalar) 
 %%%% (3) extract component XYZ rotations to facilate comparison with common ISB convention
 
-%%%% OpenSim forum posts on extracting moments from a FORWARD dynamic simulation:
-%%%% Not straightfoward, may be simpler to just run Inv Dynamic tool on
-%%%% forward sim outputs, but won't give muscle vs. passive moment
-%%%% https://simtk.org/plugins/phpBB/viewtopicPhpbb.php?f=91&t=10365&p=28702&start=0&view=
-%%%% https://simtk.org/plugins/phpBB/viewtopicPhpbb.php?f=91&t=8714&p=24061&start=0&view=
+clear all;
+close all;
+clc;
 
-clear all;close all;clc;
+%% Inputs
+
 tib_angle = 34; %ankle
 sub_angle = 48; %subtalar
 
-%% OpenSim Talocrural 1DOF joint
-%%%% PARENT = TIBIA
-%%%% CHILD = TALUS
-
-%%%<location_in_parent> = TIBIA
-tibO = [0 -0.464696391450486 0]; %mid-ankle, [0,0,0] is knee joint center 
-
-%%%% TransformAxis for <SpatialTransform>
 tibax = [-0.10501355 -0.17402245 0.97912632]; %assigned to 'ankle_r' coordinate
-%tibax = [0 0 1];
-%%%% In addtion to being primarily sagittal motion... with plantarflexion,
-%%%% there is notable frontal EVERSION + transverse EXTERNAL rotation at
+subax = [0.78717961 0.60474746 -0.12094949];
 
-[tib_rx, tib_ry, tib_rz] = axang2euler(tibax, deg2rad(tib_angle)); %radians
-tib_dx = rad2deg(tib_rx); %inversion (+), eversion (-)
-tib_dy = rad2deg(tib_ry); %internal (+), external (-)
-tib_dz = rad2deg(tib_rz); %dorsiflexion (+), plantarflexion (-)
+%%%% VERIFICATION 
+%tibax = [0 0 1]; % PURE SAGITTAL +Z
+%subax = [1 0 0]; % PURE FRONTAL +X
 
-R_talus_tibia = axang2rotmat(tibax, deg2rad(tib_angle)); %DCM of TALUS rel. TIBIA 
+%%% ORIGIN: <location_in_parent> of each axis, for later
+%%% tibO = [0 -0.464696391450486 0]; 
+%%% subO = [-0.051042192975949 -0.0439044493611044 0.00828899258498085];
 
-fprintf(1,'<TALOCRURAL> rotation = %.1f , INV(+)/EV=%.1f  INT(+)/EXT=%.1f  DF(+)/PF=%.1f\n',tib_angle, tib_dx, tib_dy, tib_dz)
+%% Helical 2 Cardan, each joint
 
-%% OpenSim Subtalar 1DOF joint
-%%%% PARENT = TALUS
-%%%% CHILD = CALC
+alpha1 = deg2rad(tib_angle)*tibax;
+[flx1,lat1,axl1] = helical2Cardan(alpha1(1),alpha1(2),alpha1(3));
+dfx1 = rad2deg(flx1); inv1 = rad2deg(lat1); int1 = rad2deg(axl1);
+fprintf(1,'\n<** TALOCRURAL> tib_angle = %6.1f, DF(+)/PF = %6.1f, INV(+)/EV = %6.1f, INT(+)/EXT = %6.1f\n',tib_angle,dfx1,inv1,int1)
+Rz1 = [cos(flx1) sin(flx1) 0;-sin(flx1) cos(flx1) 0;0 0 1];
+Rx1 = [1 0 0;0 cos(lat1) sin(lat1);0 -sin(lat1) cos(lat1)];
+Ry1 = [cos(axl1) 0 -sin(axl1);0 1 0;sin(axl1) 0 cos(axl1)];
+R1 = Ry1*Rx1*Rz1;
 
-%%%<location_in_parent>
-subO = [-0.051042192975949 -0.0439044493611044 0.00828899258498085];
+alpha2 = deg2rad(sub_angle)*subax;
+[flx2,lat2,axl2] = helical2Cardan(alpha2(1),alpha2(2),alpha2(3));
+dfx2 = rad2deg(flx2); inv2 = rad2deg(lat2); int2 = rad2deg(axl2);
+fprintf(1,'<**** SUBTALAR> sub_angle = %6.1f, DF(+)/PF = %6.1f, INV(+)/EV = %6.1f, INT(+)/EXT = %6.1f\n',sub_angle,dfx2,inv2,int2)
+Rz2 = [cos(flx2) sin(flx2) 0;-sin(flx2) cos(flx2) 0;0 0 1];
+Rx2 = [1 0 0;0 cos(lat2) sin(lat2);0 -sin(lat2) cos(lat2)];
+Ry2 = [cos(axl2) 0 -sin(axl2);0 1 0;sin(axl2) 0 cos(axl2)];
+R2 = Ry2*Rx2*Rz2;
 
-%%%% TransformAxis for <SpatialTransform>
-subax = [0.78717961 0.60474746 -0.12094949]; % assigned to COORD subtalar_r
-%subax = [1 0 0];
-%%%% This means that in addtion to being primarily frontal... with
-%%%% (+)inversion, there is large transverse INTERNAL + slight sagittal PLANTAR rotation
-
-fprintf(1,'Subtalar axis fixed incline, sagittal = %.1f\n',atand(subax(2)/subax(1))); %subtalar axis incline in foot sagittal YX plane
-fprintf(1,'Subtalar axis fixed offset, transverse = %.1f\n',atand(subax(3)/subax(1)));
-
-[sub_rx, sub_ry, sub_rz] = axang2euler(subax, deg2rad(sub_angle)); %radians
-sub_dx = rad2deg(sub_rx); %inversion (+), eversion (-)
-sub_dy = rad2deg(sub_ry); %internal (+), external (-)
-sub_dz = rad2deg(sub_rz); %dorsiflexion (+), plantarflexion (-)
-
-R_calc_talus = axang2rotmat(subax, deg2rad(sub_angle)); %DCM of CALC rel TALUS 
-
-fprintf(1,'<SUBTALAR> rotation = %.1f , INV(+)/EV=%.1f  INT(+)/EXT=%.1f  DF(+)/PF=%.1f\n',sub_angle, sub_dx, sub_dy, sub_dz)
-
-
-%% 
-
-R_calc_tibia = R_calc_talus * R_talus_tibia ; %calc orientation relative to tibia
-
-[calc_tibia_rx, calc_tibia_ry, calc_tibia_rz] = rotmat2euler( R_calc_tibia );
-calc_tibia_dx = rad2deg(calc_tibia_rx);
-calc_tibia_dy = rad2deg(calc_tibia_ry);
-calc_tibia_dz = rad2deg(calc_tibia_rz);
-
-fprintf(1,'<TIB-CALC> rotation, INV(+)/EV=%.1f  INT(+)/EXT=%.1f  DF(+)/PF=%.1f\n',calc_tibia_dx, calc_tibia_dy, calc_tibia_dz)
-
-%% Tony's Check
-%tib_angle = 34; %ankle
-%sub_angle = 30; %subtalar
-%tibax = [0 0 1]; %[-0.10501355 -0.17402245 0.97912632];
-%subax = [1 0 0]; %[0.78717961 0.60474746 -0.12094949];
-
-alpha = deg2rad(tib_angle)*tibax;
-[flx,lat,axl] = helical2Cardan(alpha(1),alpha(2),alpha(3));
-dfx = rad2deg(flx); inv = rad2deg(lat); int = rad2deg(axl);
-fprintf(1,'\n<** TALOCRURAL> tib_angle = %6.1f, DF(+)/PF = %6.1f, INV(+)/EV = %6.1f, INT(+)/EXT = %6.1f\n',tib_angle,dfx,inv,int)
-Rz = [cos(flx) sin(flx) 0;-sin(flx) cos(flx) 0;0 0 1];
-Rx = [1 0 0;0 cos(lat) sin(lat);0 -sin(lat) cos(lat)];
-Ry = [cos(axl) 0 -sin(axl);0 1 0;sin(axl) 0 cos(axl)];
-R1 = Ry*Rx*Rz;
-
-alpha = deg2rad(sub_angle)*subax;
-[flx,lat,axl] = helical2Cardan(alpha(1),alpha(2),alpha(3));
-dfx = rad2deg(flx); inv = rad2deg(lat); int = rad2deg(axl);
-fprintf(1,'<**** SUBTALAR> sub_angle = %6.1f, DF(+)/PF = %6.1f, INV(+)/EV = %6.1f, INT(+)/EXT = %6.1f\n',sub_angle,dfx,inv,int)
-Rz = [cos(flx) sin(flx) 0;-sin(flx) cos(flx) 0;0 0 1];
-Rx = [1 0 0;0 cos(lat) sin(lat);0 -sin(lat) cos(lat)];
-Ry = [cos(axl) 0 -sin(axl);0 1 0;sin(axl) 0 cos(axl)];
-R2 = Ry*Rx*Rz;
+%% Combined Ankle Complex
 
 Rtot = R2*R1;
 [alphax,alphay,alphaz] = CardanR2helical(Rtot);
-[flx,lat,axl] = helical2Cardan(alphax,alphay,alphaz);
-dfx = rad2deg(flx); inv = rad2deg(lat); int = rad2deg(axl);
-fprintf(1,'<TIB-CALCANEUS> ******************, DF(+)/PF = %6.1f, INV(+)/EV = %6.1f, INT(+)/EXT = %6.1f\n',dfx,inv,int)
+[flx3,lat3,axl3] = helical2Cardan(alphax,alphay,alphaz);
+dfx3 = rad2deg(flx3); inv3 = rad2deg(lat3); int3 = rad2deg(axl3);
+fprintf(1,'<TIB-CALCANEUS> ******************, DF(+)/PF = %6.1f, INV(+)/EV = %6.1f, INT(+)/EXT = %6.1f\n',dfx3,inv3,int3)
 
-% disp ' ';
-% disp '********************************************************************';
-% disp 'Final tibia-calcaneus rotation angles checked by alternate code... ';
-% dorsi = rad2deg(flx)
-% inver = rad2deg(lat)
-% inter = rad2deg(axl)
-% 
-% % R_calc_tibia = R_calc_talus' * R_talus_tibia';
-% [alphax,alphay,alphaz] = CardanR2helical(R_calc_tibia);
-% [flx,lat,axl] = helical2Cardan(alphax,alphay,alphaz);
-% disp ' ';
-% disp '********************************************************************';
-% disp 'Final tibia-calcaneus rotation angles with R_calc_tibia as global... ';
-% dorsi = rad2deg(flx)
-% inver = rad2deg(lat)
-% inter = rad2deg(axl)
+%% Angular Velocity 
+%%%% https://robotacademy.net.au/lesson/derivative-of-a-rotation-matrix
 
-% lat = deg2rad(17) % angle for Rx (radians)
-% axl = deg2rad(22) % angle for Ry (radians)
-% flx = deg2rad(54) % angle for Rz (radians)
-% Rx = [1 0 0;0 cos(lat) sin(lat);0 -sin(lat) cos(lat)]; % body-fixed x rotation
-% Ry = [cos(axl) 0 -sin(axl);0 1 0;sin(axl) 0 cos(axl)]; % body-fixed y rotation
-% Rz = [cos(flx) sin(flx) 0;-sin(flx) cos(flx) 0;0 0 1]; % body-fixed z rotation
-% % Rtot = Ry*Rx*Rz
-% % [rx,ry,rz] = rotmat2euler(Rtot)
-% Rtot = Rz*Ry*Rx; % body-fixed x-y-z rotation sequence
-% [rx,ry,rz] = rotmat2euler(Rtot) % this does not produce the original angles
-% % Rtot = Ry'*Rx'*Rz'
-% % [rx,ry,rz] = rotmat2euler(Rtot)
-% Rtot = Rz'*Ry'*Rx'; % transpose makes each matrix global-fixed, still in body-fixed x-y-z order
-% [rx,ry,rz] = rotmat2euler(Rtot) % this DOES produce the original angles
-% % Rtot = Rx*Ry*Rz
-% % [rx,ry,rz] = rotmat2euler(Rtot')
+skew([1 0 0])
 
-%% Unit Tests
-    
-%%%%% ##### should give dz =  90; R = [0 -1 0; 1 0 0; 0 0 1]
-% axis1 = [0 1 0];  angle1 = 45; 
-% 
-% [rX, rY, rZ] = axang2euler(axis1, deg2rad(angle1));
-% dX = rad2deg(rX)
-% dY = rad2deg(rY)
-% dZ = rad2deg(rZ)
-% 
-% R1 = axang2rotmat(axis1,deg2rad(angle1))
-% 
-% [r2X,r2Y,r2Z] = rotmat2euler(R1)
-% d2X = rad2deg(r2X)
-% d2Y = rad2deg(r2Y)
-% d2Z = rad2deg(r2Z)
 
 %% Support functions
 
-function [R] = axang2rotmat(v,theta)
-%%% https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
-
-kx = v(1); ky = v(2); kz = v(3);
-
-K = [0 -1*kz ky; kz 0 -1*kx; -1*ky kx 0];
-
-R = eye(3) + sin(theta)*K + (1-cos(theta))*K^2;
-
-end
-
-function [rotX, rotY, rotZ] = axang2euler(v,theta) 
-%%%% https://www.euclideanspace.com/maths/geometry/rotations/conversions/angleToEuler/index.htm
-%%%% https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
-%%%% inputs/outputs in RADIANS
-
-s=sin(theta);
-c=cos(theta);
-t=1-c;
-
-vn = vecnorm(v,2); %normalize if not unit vector
-if (abs(vn) < 0.998) && (abs(vn) > 1.002)
-v = v ./ vn;
-warning('Passed angle was not unit vector!')
-end
-x = v(1); y = v(2); z = v(3);
-
-if ((x*y*t + z*s) > 0.998)  %north pole singularity 
-		rotY = 2*atan2(x*sin(theta/2), cos(theta/2));
-		rotZ = pi/2;
-		rotX = 0;
-		return;
-end
-if ((x*y*t + z*s) < -0.998) %south pole singularity 
-		rotY = -2*atan2(x*sin(theta/2), cos(theta/2));
-		rotZ = -pi/2;
-		rotX = 0;
-		return;
-end
-
-rotX = atan2(x * s-y * z * t , 1 - (x^2 + z^2) * t); %bank
-rotY = atan2(y * s - x * z * t , 1 - (y^2 + z^2 ) * t); %heading
-rotZ = asin(x * y * t + z * s); %attitude
-
-end
-
-function [rx,ry,rz] = rotmat2euler(R)
-%ROTMAT2EULER Summary of this function goes here
-%   Detailed explanation goes here
-
-%%%% XYZ fixed sequence
-
-ry = atan2(-R(3,1), sqrt(R(1,1)^2 + R(2,1)^2)); %2
-
-if round(ry,4) == round(pi/2,4);    rz = 0; rx = atan2(R(1,2),R(2,2)); return; end
-if round(ry,4) == round(-1*pi/2,4); rz = 0; rx = -1*atan2(R(1,2),R(2,2)); return; end
-    
-rz = atan2( R(2,1)/cos(ry), R(1,1)/cos(ry)); %3
-
-rx = atan2( R(3,2)/cos(ry), R(3,3)/cos(ry)); %1
-
-end
-
-% ********************************************************************************
-% Tony's functions...
+% ********* Tony Petrella:
 
 function [flx,lat,axl] = helical2Cardan(alphax,alphay,alphaz)
 % input angles in radians, output angles in radians
@@ -339,4 +178,21 @@ end
 
 function n = unit(x)
 n = x/norm(x);
+end
+
+
+%% https://github.com/petercorke/spatial-math
+function S = skew(v)
+    if isvec(v,3)
+        % SO(3) case
+        S = [  0   -v(3)  v(2)
+              v(3)  0    -v(1)
+             -v(2) v(1)   0];
+    elseif isvec(v,1)
+        % SO(2) case
+        S = [0 -v; v 0];
+    else
+        error('SMTB:skew:badarg', 'argument must be a 1- or 3-vector');
+    end
+    
 end
