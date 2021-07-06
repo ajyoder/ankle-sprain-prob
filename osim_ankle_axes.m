@@ -1,41 +1,64 @@
+%%%%  Purpose, resolve OpenSim anatomic joint kinematics (helical axes) to spatial
+%%%%  kinematics of reference frames between the tibia and calcaneus
+%%%%  bodies. This will facilitate comparison with ISB conventions as used
+%%%%  more commonly in clinical biomechanics from motion capture (i.e. Visual3D) 
+%%%%
+%%%%  Steps:
+%%%% (1) per joint, convert helical to 3 cardan angles (sequence = 3-1-2 ZXY Sagittal-Frontal-Transverse)
+%%%% (2) compute combined rotation of tibia-calcaneues ankle complex (talocrural followed by subtalar) 
+%%%% (3) compute cardan angular velocities of ankle complex, given known joint anuglar velocities
+%%%%
+%%%% Notes:
 %%%% Joint definitions for Gait2392 ankle-foot:
 %%%% https://simtk-confluence.stanford.edu:8443/display/OpenSim33/OpenSim+Models#OpenSimModels-Joints
 %%%% 
 %%%% Each is <CustomJoint> which can accept 3 arbitrary (potentially non-orthogonal)
 %%%% rotation axes, followed by 3-translations. The talocrural and subtalar
 %%%% joints each are 1 oblique axis in the parent body 
-%%%%
-%%%%  Steps:
-%%%% (1) convert helical to 3 cardan angles (3-1-2 ZXY sequence)
-%%%% (2) compute DCM of total ankle complex (talocrural followed by subtalar) 
-%%%% (3) extract component XYZ rotations to facilate comparison with common ISB convention
 
 clear all;
 close all;
 clc;
 
-%% Inputs
+%% VARIABLE INPUTS
 
-tib_angle = 34; %ankle
-sub_angle = 48; %subtalar
+%%%% Logged OpenSim file from a Nessus trial execution
+%%%% Note: moments are between the calc and tibia, borne by the passive anatomy bushing ONLY, 
+%%%% in the tibia base reference frame. Torque borne by the brace bushing
+%%%% in parallel (when present) is also available, but wasnt logged in last run of MC's
+TT=readtable('nessusOut2.csv');
+TT.time = seconds(str2double(strrep(TT.time,' sec','')));
+TT = table2timetable(TT);
+q1 = TT{:,'ankle_angle_r'}; %ankle
+q2 = TT{:,'subtalar_angle_r'}; %subtalar
 
-tibax = [-0.10501355 -0.17402245 0.97912632]; %assigned to 'ankle_r' coordinate
+%%%% Analyze instant of max inversion, for now
+[submax,isubmax]=max(q2);
+tib_angle = q1(isubmax); %ankle
+sub_angle = q2(isubmax); %subtalar
+
+%%%% For verification:
+% tib_angle = -34; %ankle (DF+)
+% sub_angle = 40; %subtalar (INV+)
+
+%% FIXED INPUTS
+tibax = [-0.10501355 -0.17402245 0.97912632]; %'ankle_r' OpenSim coordinate
 subax = [0.78717961 0.60474746 -0.12094949];
 
-%%%% VERIFICATION 
+%%%% For verification: 
 %tibax = [0 0 1]; % PURE SAGITTAL +Z
 %subax = [1 0 0]; % PURE FRONTAL +X
 
-%%% ORIGIN: <location_in_parent> of each axis, for later
-%%% tibO = [0 -0.464696391450486 0]; 
-%%% subO = [-0.051042192975949 -0.0439044493611044 0.00828899258498085];
+%%% ORIGIN: <location_in_parent> of each axis, as needed
+%%% tibO = [0 -0.4647 0]; 
+%%% subO = [-0.0510 -0.0439 0.0083];
 
-%% Helical 2 Cardan, each joint
+%% (1) Helical 2 Cardan, each joint
 
 alpha1 = deg2rad(tib_angle)*tibax;
 [flx1,lat1,axl1] = helical2Cardan(alpha1(1),alpha1(2),alpha1(3));
 dfx1 = rad2deg(flx1); inv1 = rad2deg(lat1); int1 = rad2deg(axl1);
-fprintf(1,'\n<** TALOCRURAL> tib_angle = %6.1f, DF(+)/PF = %6.1f, INV(+)/EV = %6.1f, INT(+)/EXT = %6.1f\n',tib_angle,dfx1,inv1,int1)
+fprintf(1,'<** TALOCRURAL> tib_angle = %6.1f, DF(+)/PF = %6.1f, INV(+)/EV = %6.1f, INT(+)/EXT = %6.1f\n',tib_angle,dfx1,inv1,int1)
 Rz1 = [cos(flx1) sin(flx1) 0;-sin(flx1) cos(flx1) 0;0 0 1];
 Rx1 = [1 0 0;0 cos(lat1) sin(lat1);0 -sin(lat1) cos(lat1)];
 Ry1 = [cos(axl1) 0 -sin(axl1);0 1 0;sin(axl1) 0 cos(axl1)];
@@ -50,7 +73,7 @@ Rx2 = [1 0 0;0 cos(lat2) sin(lat2);0 -sin(lat2) cos(lat2)];
 Ry2 = [cos(axl2) 0 -sin(axl2);0 1 0;sin(axl2) 0 cos(axl2)];
 R2 = Ry2*Rx2*Rz2;
 
-%% Combined Ankle Complex
+%% (2) Combined Ankle Complex
 
 Rtot = R2*R1;
 [alphax,alphay,alphaz] = CardanR2helical(Rtot);
@@ -58,10 +81,19 @@ Rtot = R2*R1;
 dfx3 = rad2deg(flx3); inv3 = rad2deg(lat3); int3 = rad2deg(axl3);
 fprintf(1,'<TIB-CALCANEUS> ******************, DF(+)/PF = %6.1f, INV(+)/EV = %6.1f, INT(+)/EXT = %6.1f\n',dfx3,inv3,int3)
 
-%% Angular Velocity 
+%% (3) Angular Velocity 
+%%%% https://robotacademy.net.au/lesson/the-analytic-jacobian/
 %%%% https://robotacademy.net.au/lesson/derivative-of-a-rotation-matrix
+%%%% https://robotacademy.net.au/lesson/velocity-of-2-joint-planar-robot-arm/
+%%%% https://robotacademy.net.au/lesson/mapping-3d-spatial-velocity-between-coordinate-frames/
 
-skew([1 0 0])
+% Could be most efficient to use Corke's rtb toolbox
+
+% Joint velocities (about helical axis)
+q1dot=[NaN; diff(q1)];
+q2dot=[NaN; diff(q2)];
+
+% Map to spatial omega, calc rel. tibia
 
 
 %% Support functions
