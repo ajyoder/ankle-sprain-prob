@@ -82,21 +82,42 @@ dfx3 = rad2deg(flx3); inv3 = rad2deg(lat3); int3 = rad2deg(axl3);
 fprintf(1,'<TIB-CALCANEUS> ******************, DF(+)/PF = %6.1f, INV(+)/EV = %6.1f, INT(+)/EXT = %6.1f\n',dfx3,inv3,int3)
 
 %% (3) Angular Velocity 
+%%%% Could be most efficient to use Corke's rtb toolbox
+
+% Joint velocities (about oblique helical axis)
+q1d=[NaN; diff(q1)];
+q2d=[NaN; diff(q2)];
+
+% Map joint velocities (q1d,q2d) to spatial omega_ZXY (calcaneus rel. tibia ground)
 %%%% https://robotacademy.net.au/lesson/the-analytic-jacobian/
-%%%% https://robotacademy.net.au/lesson/derivative-of-a-rotation-matrix
-%%%% https://robotacademy.net.au/lesson/velocity-of-2-joint-planar-robot-arm/
 %%%% https://robotacademy.net.au/lesson/mapping-3d-spatial-velocity-between-coordinate-frames/
 
-% Could be most efficient to use Corke's rtb toolbox
+%# TO DO
+%# TO DO
+%# TO DO
 
-% Joint velocities (about helical axis)
-q1dot=[NaN; diff(q1)];
-q2dot=[NaN; diff(q2)];
 
-% Map to spatial omega, calc rel. tibia
+%% (4) Moments: Read in, extract peaks, from passive anatomy and brace bushing
+
+%%%% OSim Analysis output file "ForceReporter_forces.sto", contains all
+%%%% generalized system forces named with the ref. frame in which they
+%%%% are expressed.  Example: "cubic_ankle_bushing_r.tibia_r.torque.X"
+%%%% Our bushing definitions <ExpressionBasedBushingForce>, have
+%%%% M(theta) expressions specifed about BODY 2 axes (calcn_r), as a function of XYZ body-fixed
+%%%% Euler rotations.
+
+%# TO DO
+%# TO DO
+%# TO DO
+
+
 
 
 %% Support functions
+
+
+
+
 
 % ********* Tony Petrella:
 

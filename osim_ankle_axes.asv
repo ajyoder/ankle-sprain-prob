@@ -89,13 +89,50 @@ fprintf(1,'<TIB-CALCANEUS> ******************, DF(+)/PF = %6.1f, INV(+)/EV = %6.
 
 % Could be most efficient to use Corke's rtb toolbox
 
-% Joint velocities
-q1dot=d[NaN,diff(q1);
+% Joint velocities (about helical axis)
+q1d=[NaN; diff(q1)];
+q2d=[NaN; diff(q2)];
+
+% Map joint velocities (q1d,q2d) to spatial omega_ZXY (calcaneus rel. tibia ground)
 
 
+%% (4) Moments
+
+%%%% OSim Analysis output file "ForceReporter_forces.sto", contains all
+%%%% generalized system forces named with the ref. frame in which they
+%%%% are expressed.  Example: "cubic_ankle_bushing_r.tibia_r.torque.X"
+%%%% Our bushing definitions <ExpressionBasedBushingForce>, have
+%%%% M(theta) expressions specifed about BODY 2 axes (calcn_r), as a function of XYZ body-fixed
+%%%% Euler rotations.
+
+
+% % % <ExpressionBasedBushingForce name="cubic_ankle_bushing_r">
+% % % 	<!--One of the two bodies connected by the bushing.-->
+% % % 	<body_1>tibia_r</body_1>
+% % % 	<!--The other of the two bodies connected by the bushing.-->
+% % % 	<body_2>calcn_r</body_2>
+% % % 	<!--Location of bushing frame on body 1.-->
+% % % 	<location_body_1>0 -0.43 0</location_body_1>
+% % % 	<!--Orientation of bushing frame in body 1 as x-y-z, body fixed Euler rotations.-->
+% % % 	<orientation_body_1>0 0 0</orientation_body_1>
+% % % 	<!--Location of bushing frame on body 2.-->
+% % % 	<location_body_2>0.04877 0.04195 -0.00792</location_body_2>
+% % % 	<!--Orientation of bushing frame in body 2 as x-y-z, body fixed Euler rotations.-->
+% % % 	<orientation_body_2>0 0 0</orientation_body_2>
+% % % 	<!--Expression defining the contribution of theta_x deflection to the moment about body_2's x axis.-->
+% % % 	<Mx_expression>9.52095038*theta_x-29.57608094*theta_x^2+169.01588105*theta_x^3</Mx_expression>
+% % % 	<!--Expression defining the contribution of theta_y deflection to the moment about body_2's y axis.-->
+% % % 	<My_expression>3.61796125*theta_y-10.1612135*theta_y^2+64.5279144*theta_y^3</My_expression>
+% % % 	<!--Expression defining the contribution of theta_z deflection to the moment about body_2's z axis.-->
+% % % 	<Mz_expression>5.98187224*theta_z+15.74951827*theta_z^2+33.6780792*theta_z^3</Mz_expression>
+% % % </ExpressionBasedBushingForce>
 
 
 %% Support functions
+
+
+
+
 
 % ********* Tony Petrella:
 
