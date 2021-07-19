@@ -6,7 +6,7 @@
 %%%%  Steps:
 %%%% (1) per joint, convert helical to 3 cardan angles (sequence = 3-1-2 ZXY Sagittal-Frontal-Transverse)
 %%%% (2) compute combined rotation of tibia-calcaneues ankle complex (talocrural followed by subtalar) 
-%%%% (3) compute cardan angular velocities of ankle complex, given known joint anuglar velocities
+%%%% (3) compute cardan angular velocities of ankle complex, given known joint angular velocities
 %%%%
 %%%% Notes:
 %%%% Joint definitions for Gait2392 ankle-foot:
@@ -42,7 +42,7 @@ sub_angle = q2(isubmax); %subtalar
 % sub_angle = 40; %subtalar (INV+)
 
 %% FIXED INPUTS
-tibax = [-0.10501355 -0.17402245 0.97912632]; %'ankle_r' OpenSim coordinate
+tibax = [-0.10501355 -0.17402245 0.97912632];
 subax = [0.78717961 0.60474746 -0.12094949];
 
 %%%% For verification: 
@@ -81,6 +81,7 @@ Rtot = R2*R1;
 dfx3 = rad2deg(flx3); inv3 = rad2deg(lat3); int3 = rad2deg(axl3);
 fprintf(1,'<TIB-CALCANEUS> ******************, DF(+)/PF = %6.1f, INV(+)/EV = %6.1f, INT(+)/EXT = %6.1f\n',dfx3,inv3,int3)
 
+
 %% (3) Angular Velocity 
 %%%% Could be most efficient to use Corke's rtb toolbox
 
@@ -88,7 +89,7 @@ fprintf(1,'<TIB-CALCANEUS> ******************, DF(+)/PF = %6.1f, INV(+)/EV = %6.
 q1d=[NaN; diff(q1)];
 q2d=[NaN; diff(q2)];
 
-% Map joint velocities (q1d,q2d) to spatial omega_ZXY (calcaneus rel. tibia ground)
+% Map joint velocities (q1d,q2d) to omega_ZXY (calcaneus rel. tibia), using above rotation matrices
 %%%% https://robotacademy.net.au/lesson/the-analytic-jacobian/
 %%%% https://robotacademy.net.au/lesson/mapping-3d-spatial-velocity-between-coordinate-frames/
 
@@ -97,7 +98,7 @@ q2d=[NaN; diff(q2)];
 %# TO DO
 
 
-%% (4) Moments: Read in, extract peaks, from passive anatomy and brace bushing
+%% (4) Moments: Read in, extract a summary metric (peak), passive anatomy and brace bushing
 
 %%%% OSim Analysis output file "ForceReporter_forces.sto", contains all
 %%%% generalized system forces named with the ref. frame in which they

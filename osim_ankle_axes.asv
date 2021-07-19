@@ -6,7 +6,7 @@
 %%%%  Steps:
 %%%% (1) per joint, convert helical to 3 cardan angles (sequence = 3-1-2 ZXY Sagittal-Frontal-Transverse)
 %%%% (2) compute combined rotation of tibia-calcaneues ankle complex (talocrural followed by subtalar) 
-%%%% (3) compute cardan angular velocities of ankle complex, given known joint anuglar velocities
+%%%% (3) compute cardan angular velocities of ankle complex, given known joint angular velocities
 %%%%
 %%%% Notes:
 %%%% Joint definitions for Gait2392 ankle-foot:
@@ -42,7 +42,7 @@ sub_angle = q2(isubmax); %subtalar
 % sub_angle = 40; %subtalar (INV+)
 
 %% FIXED INPUTS
-tibax = [-0.10501355 -0.17402245 0.97912632]; %'ankle_r' OpenSim coordinate
+tibax = [-0.10501355 -0.17402245 0.97912632];
 subax = [0.78717961 0.60474746 -0.12094949];
 
 %%%% For verification: 
@@ -81,22 +81,52 @@ Rtot = R2*R1;
 dfx3 = rad2deg(flx3); inv3 = rad2deg(lat3); int3 = rad2deg(axl3);
 fprintf(1,'<TIB-CALCANEUS> ******************, DF(+)/PF = %6.1f, INV(+)/EV = %6.1f, INT(+)/EXT = %6.1f\n',dfx3,inv3,int3)
 
+%% (1) Helical 2 Cardan, each joint
+
+alpha1 = deg2rad(tib_angle)*tibax;
+[flx1,lat1,axl1] = helical2Cardan(alpha1(1),alpha1(2),alpha1(3));
+dfx1 = rad2deg(flx1); inv1 = rad2deg(lat1); int1 = rad2deg(axl1);
+fprintf(1,'<** TALOCRURAL> tib_angle = %6.1f, DF(+)/PF = %6.1f, INV(+)/EV = %6.1f, INT(+)/EXT = %6.1f\n',tib_angle,dfx1,inv1,int1)
+Rz1 = [cos(flx1) sin(flx1) 0;-sin(flx1) cos(flx1) 0;0 0 1];
+Rx1 = [1 0 0;0 cos(lat1) sin(lat1);0 -sin(lat1) cos(lat1)];
+Ry1 = [cos(axl1) 0 -sin(axl1);0 1 0;sin(axl1) 0 cos(axl1)];
+R1 = Ry1*Rx1*Rz1;
+
+alpha2 = deg2rad(sub_angle)*subax;
+[flx2,lat2,axl2] = helical2Cardan(alpha2(1),alpha2(2),alpha2(3));
+dfx2 = rad2deg(flx2); inv2 = rad2deg(lat2); int2 = rad2deg(axl2);
+fprintf(1,'<**** SUBTALAR> sub_angle = %6.1f, DF(+)/PF = %6.1f, INV(+)/EV = %6.1f, INT(+)/EXT = %6.1f\n',sub_angle,dfx2,inv2,int2)
+Rz2 = [cos(flx2) sin(flx2) 0;-sin(flx2) cos(flx2) 0;0 0 1];
+Rx2 = [1 0 0;0 cos(lat2) sin(lat2);0 -sin(lat2) cos(lat2)];
+Ry2 = [cos(axl2) 0 -sin(axl2);0 1 0;sin(axl2) 0 cos(axl2)];
+R2 = Ry2*Rx2*Rz2;
+
+%% (2) Combined Ankle Complex
+
+Rtot = R2*R1;
+[alphax,alphay,alphaz] = CardanR2helical(Rtot);
+[flx3,lat3,axl3] = helical2Cardan(alphax,alphay,alphaz);
+dfx3 = rad2deg(flx3); inv3 = rad2deg(lat3); int3 = rad2deg(axl3);
+fprintf(1,'<TIB-CALCANEUS> ******************, DF(+)/PF = %6.1f, INV(+)/EV = %6.1f, INT(+)/EXT = %6.1f\n',dfx3,inv3,int3)
+
+
 %% (3) Angular Velocity 
-%%%% https://robotacademy.net.au/lesson/the-analytic-jacobian/
-%%%% https://robotacademy.net.au/lesson/derivative-of-a-rotation-matrix
-%%%% https://robotacademy.net.au/lesson/velocity-of-2-joint-planar-robot-arm/
-%%%% https://robotacademy.net.au/lesson/mapping-3d-spatial-velocity-between-coordinate-frames/
+%%%% Could be most efficient to use Corke's rtb toolbox
 
-% Could be most efficient to use Corke's rtb toolbox
-
-% Joint velocities (about helical axis)
+% Joint velocities (about oblique helical axis)
 q1d=[NaN; diff(q1)];
 q2d=[NaN; diff(q2)];
 
-% Map joint velocities (q1d,q2d) to spatial omega_ZXY (calcaneus rel. tibia ground)
+% Map joint velocities (q1d,q2d) to omega_ZXY (calcaneus rel. tibia), using above rotation matrices
+%%%% https://robotacademy.net.au/lesson/the-analytic-jacobian/
+%%%% https://robotacademy.net.au/lesson/mapping-3d-spatial-velocity-between-coordinate-frames/
+
+%# TO DO
+%# TO DO
+%# TO DO
 
 
-%% (4) Moments
+%% (4) Moments: Read in, extract a summary metric (peak), passive anatomy and brace bushing
 
 %%%% OSim Analysis output file "ForceReporter_forces.sto", contains all
 %%%% generalized system forces named with the ref. frame in which they
@@ -105,27 +135,11 @@ q2d=[NaN; diff(q2)];
 %%%% M(theta) expressions specifed about BODY 2 axes (calcn_r), as a function of XYZ body-fixed
 %%%% Euler rotations.
 
+%# TO DO
+%# TO DO
+%# TO DO
 
-% % % <ExpressionBasedBushingForce name="cubic_ankle_bushing_r">
-% % % 	<!--One of the two bodies connected by the bushing.-->
-% % % 	<body_1>tibia_r</body_1>
-% % % 	<!--The other of the two bodies connected by the bushing.-->
-% % % 	<body_2>calcn_r</body_2>
-% % % 	<!--Location of bushing frame on body 1.-->
-% % % 	<location_body_1>0 -0.43 0</location_body_1>
-% % % 	<!--Orientation of bushing frame in body 1 as x-y-z, body fixed Euler rotations.-->
-% % % 	<orientation_body_1>0 0 0</orientation_body_1>
-% % % 	<!--Location of bushing frame on body 2.-->
-% % % 	<location_body_2>0.04877 0.04195 -0.00792</location_body_2>
-% % % 	<!--Orientation of bushing frame in body 2 as x-y-z, body fixed Euler rotations.-->
-% % % 	<orientation_body_2>0 0 0</orientation_body_2>
-% % % 	<!--Expression defining the contribution of theta_x deflection to the moment about body_2's x axis.-->
-% % % 	<Mx_expression>9.52095038*theta_x-29.57608094*theta_x^2+169.01588105*theta_x^3</Mx_expression>
-% % % 	<!--Expression defining the contribution of theta_y deflection to the moment about body_2's y axis.-->
-% % % 	<My_expression>3.61796125*theta_y-10.1612135*theta_y^2+64.5279144*theta_y^3</My_expression>
-% % % 	<!--Expression defining the contribution of theta_z deflection to the moment about body_2's z axis.-->
-% % % 	<Mz_expression>5.98187224*theta_z+15.74951827*theta_z^2+33.6780792*theta_z^3</Mz_expression>
-% % % </ExpressionBasedBushingForce>
+
 
 
 %% Support functions
