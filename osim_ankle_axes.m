@@ -235,18 +235,3 @@ n = x/norm(x);
 end
 
 
-%% https://github.com/petercorke/spatial-math
-function S = skew(v)
-    if isvec(v,3)
-        % SO(3) case
-        S = [  0   -v(3)  v(2)
-              v(3)  0    -v(1)
-             -v(2) v(1)   0];
-    elseif isvec(v,1)
-        % SO(2) case
-        S = [0 -v; v 0];
-    else
-        error('SMTB:skew:badarg', 'argument must be a 1- or 3-vector');
-    end
-    
-end
