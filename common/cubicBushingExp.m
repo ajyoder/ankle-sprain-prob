@@ -69,19 +69,19 @@ end
 
 %% Quick verification plot vs. baseline trajectories
  
-hfig=figure('name',['rf = ' num2str(fi) sprintf(' (%3.0f%%)',f*100)]);
-for ii=1:3
-subplot(3,1,ii); hold on;
-switch ii
-    case 1; title('X: Frontal (+ Anterior)');
-    case 2; title('Y: Transverse (+ Superior)');
-    case 3; title('Z: Sagittal (+ Right)');
-end
-plot(d,m(:,ii),'k:'); %%%baseline
-plot(d,polyval(p(ii,:),r),'b-');
-xlim([-40 40]); xlabel('angle (deg)')
-ylim([-30 30]); ylabel('torque (N-m)')
-end
+% hfig=figure('name',['rf = ' num2str(fi) sprintf(' (%3.0f%%)',f*100)]);
+% for ii=1:3
+% subplot(3,1,ii); hold on;
+% switch ii
+%     case 1; title('X: Frontal (+ Anterior)');
+%     case 2; title('Y: Transverse (+ Superior)');
+%     case 3; title('Z: Sagittal (+ Right)');
+% end
+% plot(d,m(:,ii),'k:'); %%%baseline
+% plot(d,polyval(p(ii,:),r),'b-');
+% xlim([-40 40]); xlabel('angle (deg)')
+% ylim([-30 30]); ylabel('torque (N-m)')
+% end
 
 
 

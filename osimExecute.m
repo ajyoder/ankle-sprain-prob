@@ -1,7 +1,7 @@
 clear all
 % close all
 
-%%%DEFAULTS (should re-produce level landing results reported by DeMers)
+%%%DEFAULTS (should re-produce level landing simulation in (DeMers et al 2017)
 % pdi = 0; %degrees, platform incline
 % hi = 0.300; %m, drop height
 % ei = 50000000; %Pa/m, contact stiffness, (rubber/sole thickness) = (1MPa / 0.02m)
@@ -9,26 +9,28 @@ clear all
 % fi = 0;  %[-1,1] brace stiffness scale factor f>1 = more stiff
 % ci  =    0.000   ; %co-activation
 % rgi =    5.000   ; %reflex gain
+% j1i =  -34.000   ; %joint, ankle, dorsi/plantar (-34 in DeMers)
+% j2i =    0.000   ; %joint, ankle, inv/ev (0 in DeMers)
+% m1i =    0.000   ; %max_isometric_force (0 = 100%)
+% bi  =      NaN   ; %[-1,1] brace stiffness scale factor f>1 = more stiff   
 
 pdi =    30.0    ; %degrees, platform incline
 hi  =    0.300   ; %m, drop height
 ei  =    50000000; %Pa/m, contact stiffness, (rubber/sole thickness) = (1MPa / 0.02m), 50000000 in DeMers
 di  =    5.0     ; %sec/m, contact dissipation
 fi  =    0.000   ; %[-1,1] brace stiffness scale factor f>1 = more stiff
-ci  =    0.500   ; %co-activation
-rgi =    5.000   ; %reflex gain
+ci  =    0.000   ; %co-activation
+rgi =    0.000   ; %reflex gain
 j1i =  -34.000   ; %joint, ankle, dorsi/plantar (-34 in DeMers)
 j2i =    0.000   ; %joint, ankle, inv/ev (0 in DeMers)
 m1i =    0.000   ; %max_isometric_force 
-bi  =    0.500   ; %[-1,1] brace stiffness scale factor f>1 = more stiff   
+bi  =    NaN   ; %[-1,1] brace stiffness scale factor f>1 = more stiff; set NaN for no brace  
 
 DISABLE_REFLEXES = false;
 DISABLE_COACT = false;
 
-dirRoot='C:\Users\EACE-Precision-1\Google Drive\WORK\PROJECTS\AnkleSprains';
 trial = 'osim';
 modelfile = 'DeMers_nominal_coact_reflex_brace_v2.osim';
-
 
 %%%%%%%=========================================================================================
 %%%%%%%============MODIFY BELOW=================================================================
@@ -40,6 +42,7 @@ global dirN
 dirN=cd; %current NESSUS sub-directory under \F\####
 dirOutput = [dirN '\osim_output'];
 mkdir(dirOutput)
+dirSetup = [dirN '\setup'];
 
 %% Simulation settings (study fixed)
 time_initial = 0; %sec 
@@ -47,23 +50,22 @@ time_end = 0.150; %sec
 
 %% Initialize API
 addpath(genpath('.\common\'))
+addpath(genpath('.\setup\'))
 
 import org.opensim.modeling.*
 import org.opensim.utils.*
 
 Model.LoadOpenSimLibrary("C:\OpenSim 3.3\plugins\ReflexControllersPlugin.dll")
-% Model.LoadOpenSimLibrary("C:\OpenSim 3.3\plugins\UWLigamentPlugin.dll")
 
 %% Initialize directories and load default settings
 %%%Model files, setup, states, etc...
-dirInput=[dirRoot '\opensim\yoder'];
 
-setupGeneric=[dirInput '\Setup_Forward.xml'];
-% statesFileDefault=[dirInput '\initialState_nominalLevelGround.sto'];
-statesFileDefault=[dirInput '\initialState_nominalLevelGround_WithMusc.sto']; %4/13/21: ADDED fiber activations and lengths
+setupGeneric=[dirSetup '\Setup_Forward.xml'];
+% statesFileDefault=[dirSetup '\initialState_nominalLevelGround.sto'];
+statesFileDefault=[dirSetup '\initialState_nominalLevelGround_WithMusc.sto']; %4/13/21: ADDED fiber activations and lengths
 stateSto = Storage(statesFileDefault); %load as osim API object
 
-%save parameters to file for easy reference
+%save input parameters to file for easy reference
 T = array2table([pdi,round(hi,3),ei,di,fi,ci,rgi,j1i,j2i,m1i],'VariableNames',{'pdi','hi','ei','di','fi','ci','rgi','j1i','j2i','m1i'});
 writetable(T,[dirOutput '\' trial '_params.txt'])
 
@@ -87,7 +89,7 @@ statesFileMod=[dirOutput '\' trial '_initialState.sto'];
 stateSto.print(statesFileMod);
 
 %% Configure model and enable visualizer to show simulation
-model = Model([dirInput '\' modelfile]);
+model = Model([dirSetup '\' modelfile]);
 % model.setUseVisualizer(true);
 model.initSystem();
 
@@ -101,8 +103,8 @@ eff.setStiffness(ei);
 eff.setDissipation(di);
 
 %% Adjust ankle stiffness
-f = fi;  %[-1,1] stiffness scale factor f>1 = more stiff
-c = cubicBushingN(f,1,0); %(3x1) (x,y,z)
+%%%fi = [-1,1] stiffness scale factor f>1 = more stiff
+c = cubicBushingExp(fi); %(3x1) (x,y,z)
 bushing1 = model.getForceSet.get('cubic_ankle_bushing_r'); %passive anatomy
 MX=c{1}; MY=c{2}; MZ=c{3}; 
 pass = ExpressionBasedBushingForce.safeDownCast(bushing1);
@@ -111,18 +113,13 @@ pass.setMyExpression(MY);
 pass.setMzExpression(MZ);
 
 %% Adjust additional brace stiffness
-c2 = cubicBushingN(bi,1,0); %(3x1) (x,y,z)
+c2 = cubicBushingExp(bi); %(3x1) (x,y,z)
 bushing2 = model.getForceSet.get('brace_exp_bushing_r');
 MX2 = c2{1}; MY2 = c2{2}; MZ2 = c2{3}; 
 brace = ExpressionBasedBushingForce.safeDownCast(bushing2);
 brace.setMxExpression(MX2);
 brace.setMyExpression(MY2);
 brace.setMzExpression(MZ2);
-
-%% Adjust additional brace stiffness (linear)
-% bushing2 = model.getForceSet.get('brace_lin_bushing_r');
-% brace = BushingForce.safeDownCast(bushing2);
-% brace.set_rotational_stiffness(Vec3(bi)); %biodex laceup ~6.8, stirrup ~15.5
 
 %% Adjust Reflexes
 
@@ -134,12 +131,10 @@ brace.setMzExpression(MZ2);
 reEv=Controller.safeDownCast( model.updControllerSet.get('AnkleEverterDelayedReflexes') );
 reIv=Controller.safeDownCast( model.updControllerSet.get('AnkleInverterDelayedReflexes') );
 
-%%%% APRIL 2021: Must turn these OFF for co-act to be respected
 PropertyHelper.setValueBool(DISABLE_REFLEXES, reEv.updPropertyByName('isDisabled'), 0)
 PropertyHelper.setValueDouble(rgi, reEv.updPropertyByName('gain'), 0)
 PropertyHelper.setValueDouble(0.06, reEv.updPropertyByName('delay'), 0)
 
-%%%% APRIL 2021: Must turn these OFF for co-act to be respected
 PropertyHelper.setValueBool(DISABLE_REFLEXES, reIv.updPropertyByName('isDisabled'), 0)
 PropertyHelper.setValueDouble(rgi, reIv.updPropertyByName('gain'), 0)
 PropertyHelper.setValueDouble(0.06, reIv.updPropertyByName('delay'), 0)
@@ -151,18 +146,6 @@ coInv=PrescribedController.safeDownCast( model.updControllerSet.get('inverter_co
 coEv.set_isDisabled(DISABLE_COACT);
 coInv.set_isDisabled(DISABLE_COACT);
 
-% %%%%(AY) BUG: Something in these commands was causing MATLAB crash after 1 or more executions 
-% % % % fset1=coInv.upd_ControlFunctions;
-% % % % for i1=(1:fset1.getSize)-1
-% % % % fset1.set(i1, Constant(ci*0.9322), false); %inverters always 93% of everters for zero net moment
-% % % % end
-% % % % 
-% % % % fset2=coEv.upd_ControlFunctions;
-% % % % for i2=(1:fset2.getSize)-1
-% % % % fset2.set(i2, Constant(ci), false);
-% % % % end
-
-% %%%%(AY) ATTEMPT #2: seems to not crash... 
 % %%% EVERTORS: (ext_dig_r, per_brev_r, per_long_r, per_tert_r)
 fset1 = FunctionSet();
 fset1.adoptAndAppend(Constant(ci));
@@ -179,7 +162,8 @@ fset2.adoptAndAppend(Constant(ci*0.9322));
 fset2.adoptAndAppend(Constant(ci*0.9322));
 coInv.set_ControlFunctions(fset2);
 
-%%%%% Adjust default activation, or else will not rise to prescribed until Tau exct-act delay 
+%%%%% Adjust initial activation, else muscle will start at zero, and be
+%%%%% subject to activation time delay dynamics
 muscles=model.updMuscles;
 
 %%% EVERTORS
@@ -187,8 +171,6 @@ muslist1={'per_long_r','per_brev_r','per_tert_r','ext_dig_r'};
 for mus=muslist1
 mus1=Thelen2003Muscle.safeDownCast( muscles.get(mus{:}) );
 mus1.setDefaultActivation(ci);
-% mus1.setActivationTimeConstant(0.00000001); %0.0 DOESNT WORK 
-%%%%Better than messing with activation constant, then can still use reflexes
 stateSto.setDataColumn(stateSto.getStateIndex([mus{:} '.activation']), ArrayDouble(ci, stateSto.getSize)); 
 end
 
@@ -197,8 +179,6 @@ muslist2={'ext_hal_r', 'flex_dig_r', 'flex_hal_r', 'tib_post_r'};
 for mus=muslist2
 mus2=Thelen2003Muscle.safeDownCast( muscles.get(mus{:}) );
 mus2.setDefaultActivation(ci*0.9322);
-% mus2.setActivationTimeConstant(0.00000001); %0.0 DOESNT WORK 
-%%%%Better than messing with activation constant, then can still use reflexes
 stateSto.setDataColumn(stateSto.getStateIndex([mus{:} '.activation']), ArrayDouble(ci*0.9322, stateSto.getSize));
 end
 
@@ -211,30 +191,22 @@ stateSto.print(statesFileMod);
 %% Adjust muscle parameters
 muscles=model.updMuscles;
 
-% % % muslist1={'per_long_r','per_brev_r','per_tert_r','ext_dig_r'};
 for mus=[muslist1 muslist2]
 mus1=Thelen2003Muscle.safeDownCast( muscles.get(mus{:}) );
 Fmax=mus1.get_max_isometric_force;
-% Lopt=mus1.get_optimal_fiber_length;
-% TL=mus1.get_tendon_slack_length;
-% Vmax=mus1.get_max_contraction_velocity;
-% Ta=mus1.get_activation_time_constant;
-% Af=mus1.get_Af;
+% % % Lopt=mus1.get_optimal_fiber_length;
+% % % TL=mus1.get_tendon_slack_length;
+% % % Vmax=mus1.get_max_contraction_velocity;
+% % % Ta=mus1.get_activation_time_constant;
+% % % Af=mus1.get_Af;
 
 mus1.set_max_isometric_force( Fmax + Fmax*m1i )
-% mus1.set_optimal_fiber_length( Lopt + Lopt*m2i );
-% mus1.set_tendon_slack_length( TL + TL*m3i );
-% mus1.set_max_contraction_velocity( Vmax + Vmax*m4i );
-% mus1.set_activation_time_constant( Ta + Ta*m5i );
-% mus1.set_Af( Af + Af*m6i );
+% % % mus1.set_optimal_fiber_length( Lopt + Lopt*m2i );
+% % % mus1.set_tendon_slack_length( TL + TL*m3i );
+% % % mus1.set_max_contraction_velocity( Vmax + Vmax*m4i );
+% % % mus1.set_activation_time_constant( Ta + Ta*m5i );
+% % % mus1.set_Af( Af + Af*m6i );
 end
-
-
-%% Add custom Reporter utility to print outputs not in the standard tools
-
-%%Option 1: ConsoleReporter  (https://github.com/opensim-org/opensim-core#simple-example)
-
-
 
 %% Execute forward simulation, print results, save settings
 model.initSystem;
@@ -252,7 +224,7 @@ fwd.setStartTime(time_initial);
 fwd.setFinalTime(time_end);
 fwd.setSolveForEquilibrium(true); %JUNE 21: switched from FALSE to TRUE
 %%%% found it produced better agreement with DeMers fiber lengths
-%%%% and produced slightly different kinematics/GRF/etc... shoudl verify
+%%%% and produced slightly different kinematics/GRF/etc... should verify
 %%%% this doesnt impact trials where the fibers would be substantially
 %%%% different at t=0, i.e. different ankle PF
 
@@ -374,23 +346,19 @@ writetimetable(TO,[dirN '\nessusOut2.csv']);
 %%% Joint reactions:
 %%% <joint name>on<body>in<frame>_<component>. 
 
-%VALIDATION: level landing data published by DeMers
-% dirDeMers=[dirRoot '\opensim\demers\simulated landing on level ground\results\'];
-% kqD = ReadOSIMtxt([dirDeMers '\fwd_Kinematics_q.sto']);
-% kqD=kqD.data; jointsD=kqD.Properties.VariableNames';
+%%%% COMPARE: inclined simulations published by DeMers
+dirDeMers=[dirN '\demers\simulations of ankle co-activation and ankle stretch reflexes\'];
+trialDeMers = 'incline_30.0_activation_0.0';
+% trialDeMers = 'incline_30.0_gain_5.0_delay_0.06';
+
+%%%% COMPARE: level landing simulation published by DeMers
+% dirDeMers=[dirN '\demers\simulated landing on level ground\results\'];
 % fD = ReadOSIMtxt([dirDeMers '\fwd_ForceReporter_forces.sto']);
 % fD=fD.data; forcesD=fD.Properties.VariableNames';
-% aD = ReadOSIMtxt([dirDeMers '\fwd_Actuation_force.sto']);
-% aD=aD.data; actuatorsD=aD.Properties.VariableNames';
 % cD = ReadOSIMtxt([dirDeMers '\fwd_controls.sto']);
 % cD=cD.data; controlsD=cD.Properties.VariableNames';
 % sD = ReadOSIMtxt([dirDeMers '\fwd_states.sto']);
 % sD=sD.data; statesD=sD.Properties.VariableNames';
-
-%VERIFICATION incline simulation results published by DeMers
-dirDeMers=[dirRoot '\opensim\demers\simulations of ankle co-activation and ankle stretch reflexes\'];
-trialDeMers = 'incline_30.0_activation_0.0';
-% trialDeMers = 'incline_30.0_gain_5.0_delay_0.06';
 
 fD = ReadOSIMtxt([dirDeMers trialDeMers '_forces.sto']);
 fD=fD.data; forcesD=fD.Properties.VariableNames';
@@ -412,9 +380,6 @@ Nc = 1;
 hax1=subplot(Nr,Nc,1); hold on; hold on; title(trial,'interpreter','none')
 p1=plot(t,kq.subtalar_angle_r,'g-');
 pb=plot(t,kq.ankle_angle_r,'b-');
-%%% DeMers fwd sim resutls dont have kinematics file outupts - use states instead
-% % % p1D=plot(tD,kqD.subtalar_angle_r,'g:'); %DeMers verification 
-% % % p2D=plot(tD,kqD.ankle_angle_r,'b:'); %DeMers verification 
 p1D=plot(tD,rad2deg(sD.subtalar_angle_r),'g:'); %DeMers verification 
 p2D=plot(tD,rad2deg(sD.ankle_angle_r),'b:'); %DeMers verification 
 XLM=get(hax1,'xlim');
@@ -438,11 +403,6 @@ fD.cubic_ankle_bushing_r_tibia_r_torque_X.^2+...
 fD.cubic_ankle_bushing_r_tibia_r_torque_Y.^2+...
 fD.cubic_ankle_bushing_r_tibia_r_torque_Z.^2]);
 
-% passBL=sqrt([...
-% f.brace_lin_bushing_r_tibia_r_torque_X.^2+...
-% f.brace_lin_bushing_r_tibia_r_torque_Y.^2+...
-% f.brace_lin_bushing_r_tibia_r_torque_Z.^2]);
-
 passBC=sqrt([...
 f.brace_exp_bushing_r_tibia_r_torque_X.^2+...
 f.brace_exp_bushing_r_tibia_r_torque_Y.^2+...
@@ -456,28 +416,6 @@ hbc=plot(t,passBC,'g-');
 XLM=get(hax3,'xlim');
 plot([XLM(1) XLM(2)],[0 0],'k-')
 legend([hpt, hptD, hbc],{'passive','passiveD','brace-cubic'},'location','best')
-
-%% Passive Stiffness 
-if false
-    
-figure; hold on
-plot(kq.subtalar_angle_r, f.cubic_ankle_bushing_r_tibia_r_torque_X,'k-','displayname','anatomy')
-plot(kq.subtalar_angle_r, f.brace_lin_bushing_r_tibia_r_torque_X,'b-','displayname','linear')
-plot(kq.subtalar_angle_r, f.brace_exp_bushing_r_tibia_r_torque_X,'g-','displayname','cubic')
-legend show
-
-end
-
-%% Passive Stiffness 
-if false
-    
-figure; hold on
-plot(t, f.cubic_ankle_bushing_r_tibia_r_torque_X,'r-','displayname','x')
-plot(t, f.cubic_ankle_bushing_r_tibia_r_torque_Y,'g-','displayname','y')
-plot(t, f.cubic_ankle_bushing_r_tibia_r_torque_Z,'b-','displayname','z')
-legend show
-
-end 
 
 %% CONTROLS
 musEv={'per_long_r','per_brev_r','per_tert_r','ext_dig_r'};
@@ -526,43 +464,3 @@ set(hs2D,{'tag'},plotlist2D);
 
 [ h_show,h_hide ] = FindObjs( hax6, [musEv musInv],'line');
 
-%% Joint Reactions
-% figure
-% 
-% subplot(3,1,1);hold on
-% plot(t,r.subtalar_r_on_calcn_r_in_calcn_r_fx/weight,'displayname','fx');
-% plot(t,r.subtalar_r_on_calcn_r_in_calcn_r_fy/weight,'displayname','fy');
-% plot(t,r.subtalar_r_on_calcn_r_in_calcn_r_fz/weight,'displayname','fz');
-% ylabel('BW')
-% xlim([0.001 0.15])
-% subplot(3,1,2);hold on
-% plot(t,r.subtalar_r_on_calcn_r_in_calcn_r_mx/mass,'displayname','mx');
-% plot(t,r.subtalar_r_on_calcn_r_in_calcn_r_my/mass,'displayname','my');
-% plot(t,r.subtalar_r_on_calcn_r_in_calcn_r_mz/mass,'displayname','mz');
-% ylabel('Nm/kg')
-% xlim([0.001 0.15])
-% subplot(3,1,3);hold on
-% plot(t,r.subtalar_r_on_calcn_r_in_calcn_r_px,'displayname','px');
-% plot(t,r.subtalar_r_on_calcn_r_in_calcn_r_py,'displayname','py');
-% plot(t,r.subtalar_r_on_calcn_r_in_calcn_r_pz,'displayname','pz');
-% ylabel('location (m)')
-% xlim([0.001 0.15])
-
-%%  Compare joint velocity to finite difference approxmiation
-% figure
-% 
-% subplot(2,1,1);hold on
-% plot(TO.ankle_angle_r_q,'b-')
-% plot(TO.subtalar_angle_r_q,'r-')
-% 
-% subplot(2,1,2);hold on
-% plot(TO.ankle_angle_r_u,'b-')
-% plot(TO.subtalar_angle_r_u,'r-')
-% 
-% dt = seconds(TO.Properties.TimeStep);
-% % q1dot = [NaN;diff(TO.ankle_angle_r_q)];
-% % q2dot = [NaN;diff(TO.subtalar_angle_r_q)];
-% q1dot = gradient(TO.ankle_angle_r_q,dt);
-% q2dot = gradient(TO.subtalar_angle_r_q,dt);
-% plot(q1dot,'b:')
-% plot(q2dot,'r:')
