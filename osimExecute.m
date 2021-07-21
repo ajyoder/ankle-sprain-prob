@@ -223,10 +223,6 @@ fwd.setResultsDir(dirOutput);
 fwd.setStartTime(time_initial);
 fwd.setFinalTime(time_end);
 fwd.setSolveForEquilibrium(true); %JUNE 21: switched from FALSE to TRUE
-%%%% found it produced better agreement with DeMers fiber lengths
-%%%% and produced slightly different kinematics/GRF/etc... should verify
-%%%% this doesnt impact trials where the fibers would be substantially
-%%%% different at t=0, i.e. different ankle PF
 
 fwd.print([dirOutput '\' trial '_Setup_Foward.xml']);
 
@@ -255,47 +251,11 @@ bq = ReadOSIMtxt([dirOutput '\' trial '_BodyKinematics_pos_global.sto']); bq=bq.
 % bv = ReadOSIMtxt([dirOutput '\' trial '_BodyKinematics_vel_global.sto']); bv=bv.data;
 % ba = ReadOSIMtxt([dirOutput '\' trial '_BodyKinematics_acc_global.sto']); ba=ba.data;
 
-%%%%Discard useless data
-%%%%%%========Only re-run this bit to adjust saved settings (slow)
-% % fKeep=readtable('osim_outputs_to_keep_forceReporter.xlsx','ReadVariableNames',false);  fKeep=fKeep{:,2};
-% % fKeep = fKeep(~cellfun('isempty',fKeep));
-% % rKeep=readtable('osim_outputs_to_keep_jointReaction.xlsx','ReadVariableNames',false);  rKeep=rKeep{:,2};
-% % rKeep = rKeep(~cellfun('isempty',rKeep));
-% % kKeep=readtable('osim_outputs_to_keep_jointKinematics.xlsx','ReadVariableNames',false);  kKeep=kKeep{:,2};
-% % kKeep = kKeep(~cellfun('isempty',kKeep));
-% % save('osim_outputs_to_keep.mat','fKeep','rKeep','kKeep');
-
-%%%%%%========Access mat file without loading to memory (fast)
-% M = matfile('osim_outputs_to_keep.mat');
-% kq = kq(:,M.kKeep');
-% kv = kv(:,M.kKeep');
-% ka = ka(:,M.kKeep');
-% f = f(:,M.fKeep');
-% r = r(:,M.rKeep');
-
-%============Downsample data
-% Fs=2000; %Hz
-% Tout=struct();
-% [Tout.s] = splineOsimTable(s,Fs);
-% [Tout.c] = splineOsimTable(c,Fs);
-% [Tout.kq] = splineOsimTable(kq,Fs);
-% [Tout.kv] = splineOsimTable(kv,Fs);
-% [Tout.ka] = splineOsimTable(ka,Fs);
-% [Tout.f] = splineOsimTable(f,Fs);
-% [Tout.r] = splineOsimTable(r,Fs);
-% %%%[Tout.a] = splineOsimTable(a,Fs); %subset of ForceReporter
-% save([dirOutput '\out.mat'],'Tout')
-% copyfile([dirOutput '\out.mat'],[dirN '\' 'out.mat'])
-
 %% Compute discrete output metrics
 Y1=max(kq.subtalar_angle_r)
 Y2=max(kv.subtalar_angle_r);
 Y3=max(kq.ankle_angle_r);
 Y4=max(kv.ankle_angle_r);
-% Y5=max(abs(f.cubic_ankle_bushing_r_tibia_r_torque_X));
-% Y6=max(abs(f.cubic_ankle_bushing_r_tibia_r_torque_Y));
-% Y7=max(abs(f.cubic_ankle_bushing_r_tibia_r_torque_Z));
-
 
 %% Write outcome metrics to delimited text that NESSUS can read
 if ~exist('dirN','var');  dirN=dirOutput; end
@@ -304,9 +264,6 @@ fprintf(fid,'%.1f\n',Y1);
 fprintf(fid,'%.1f\n',Y2);
 fprintf(fid,'%.1f\n',Y3);
 fprintf(fid,'%.1f\n',Y4);
-% fprintf(fid,'%.1f\n',Y5);
-% fprintf(fid,'%.1f\n',Y6);
-% fprintf(fid,'%.1f\n',Y7);
 fclose(fid);
 
 T1 = f(:,{'time','foot_floor_r_calcn_r_force_X','foot_floor_r_calcn_r_force_Y','foot_floor_r_calcn_r_force_Z','foot_floor_r_calcn_r_torque_X','foot_floor_r_calcn_r_torque_Y','foot_floor_r_calcn_r_torque_Z',...
