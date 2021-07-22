@@ -42,7 +42,14 @@ global dirN
 dirN=cd; %current NESSUS sub-directory under \F\####
 dirOutput = [dirN '\osim_output'];
 mkdir(dirOutput)
+%%%% Use this if running in NESSUS sub-directories
+% dirNsplit = strsplit(fileparts(dirN),'\');
+% dirNroot = strjoin(dirNsplit(1:end-1),'\');
+% dirSetup = [dirNroot '\setup'];
+% dirCommon = [dirNroot '\common'];
+%%%% Use this if running in current directory
 dirSetup = [dirN '\setup'];
+dirCommon = [dirN '\common'];
 
 %% Simulation settings (study fixed)
 time_initial = 0; %sec 
