@@ -1,30 +1,30 @@
 clear all
 % close all
 
-%%%DEFAULTS (should re-produce level landing simulation in (DeMers et al 2017)
-% pdi = 0; %degrees, platform incline
-% hi = 0.300; %m, drop height
-% ei = 50000000; %Pa/m, contact stiffness, (rubber/sole thickness) = (1MPa / 0.02m)
-% di = 5; %sec/m, contact dissipation
-% fi = 0;  %[-1,1] brace stiffness scale factor f>1 = more stiff
-% ci  =    0.000   ; %co-activation
-% rgi =    5.000   ; %reflex gain
-% j1i =  -34.000   ; %joint, ankle, dorsi/plantar (-34 in DeMers)
-% j2i =    0.000   ; %joint, ankle, inv/ev (0 in DeMers)
-% m1i =    0.000   ; %max_isometric_force (0 = 100%)
-% bi  =      NaN   ; %[-1,1] brace stiffness scale factor f>1 = more stiff   
+%%% Baseline Defaults: these reproduce the level landing simulation in (DeMers et al 2017)
+% % % pdi =     0.0    ; %degrees, platform incline
+% % % hi  =    0.300   ; %m, drop height
+% % % ei  =    50000000; %Pa/m, contact stiffness, (rubber/sole thickness) = (1MPa / 0.02m), 50000000 in DeMers
+% % % di  =    5.0     ; %sec/m, contact dissipation
+% % % fi  =    0.000   ; %[-1,1] passive anatomic stiffness scale factor 0=100% baseline, f > 1 = more stiff
+% % % ci  =    0.000   ; %co-activation 1 = 100%
+% % % rgi =    0.000   ; %reflex gain
+% % % j1i =  -34.000   ; %joint, ankle, dorsi/plantar (-34 in DeMers)
+% % % j2i =   -5.720   ; %joint, ankle, inv/ev (0 in DeMers)
+% % % m1i =    0.000   ; %max_isometric_force (0 = 100% strength)
+% % % bi  =    NaN     ; %[-1,1] brace stiffness, where 0 = 100% = passive anatomy f>1 = more stiff; set NaN for no brace 
 
-pdi =    30.0    ; %degrees, platform incline
-hi  =    0.300   ; %m, drop height
-ei  =    50000000; %Pa/m, contact stiffness, (rubber/sole thickness) = (1MPa / 0.02m), 50000000 in DeMers
-di  =    5.0     ; %sec/m, contact dissipation
-fi  =    0.000   ; %[-1,1] brace stiffness scale factor f>1 = more stiff
-ci  =    0.000   ; %co-activation
-rgi =    0.000   ; %reflex gain
-j1i =  -34.000   ; %joint, ankle, dorsi/plantar (-34 in DeMers)
-j2i =    0.000   ; %joint, ankle, inv/ev (0 in DeMers)
-m1i =    0.000   ; %max_isometric_force 
-bi  =    NaN   ; %[-1,1] brace stiffness scale factor f>1 = more stiff; set NaN for no brace  
+pdi =     0.0    ; 
+hi  =    0.300   ; 
+ei  =    50000000; 
+di  =    5.0     ; 
+fi  =    0.000   ; 
+ci  =    0.000   ; 
+rgi =    0.000   ; 
+j1i =  -34.000   ; 
+j2i =   -5.720   ;
+m1i =    0.000   ;  
+bi  =    NaN     ;  
 
 DISABLE_REFLEXES = false;
 DISABLE_COACT = false;
@@ -129,6 +129,8 @@ brace.setMyExpression(MY2);
 brace.setMzExpression(MZ2);
 
 %% Adjust Reflexes
+%%%% Note if these are activate at the same time as co-activation
+%%%% controllers, they may conflict
 
 %%%%  Delay: literature suggests 60-120ms, DeMers used 60 for fastest possible)
 %%%%  Gain: Demers explored (0-10) (none-strong)
@@ -146,7 +148,7 @@ PropertyHelper.setValueBool(DISABLE_REFLEXES, reIv.updPropertyByName('isDisabled
 PropertyHelper.setValueDouble(rgi, reIv.updPropertyByName('gain'), 0)
 PropertyHelper.setValueDouble(0.06, reIv.updPropertyByName('delay'), 0)
 
-%% Adjust co-activation, for 0%, do they need to be disabled?
+%% Adjust co-activation
 coEv=PrescribedController.safeDownCast( model.updControllerSet.get('everter_controls_r') );
 coInv=PrescribedController.safeDownCast( model.updControllerSet.get('inverter_controls_r') );
  
@@ -201,18 +203,7 @@ muscles=model.updMuscles;
 for mus=[muslist1 muslist2]
 mus1=Thelen2003Muscle.safeDownCast( muscles.get(mus{:}) );
 Fmax=mus1.get_max_isometric_force;
-% % % Lopt=mus1.get_optimal_fiber_length;
-% % % TL=mus1.get_tendon_slack_length;
-% % % Vmax=mus1.get_max_contraction_velocity;
-% % % Ta=mus1.get_activation_time_constant;
-% % % Af=mus1.get_Af;
-
 mus1.set_max_isometric_force( Fmax + Fmax*m1i )
-% % % mus1.set_optimal_fiber_length( Lopt + Lopt*m2i );
-% % % mus1.set_tendon_slack_length( TL + TL*m3i );
-% % % mus1.set_max_contraction_velocity( Vmax + Vmax*m4i );
-% % % mus1.set_activation_time_constant( Ta + Ta*m5i );
-% % % mus1.set_Af( Af + Af*m6i );
 end
 
 %% Execute forward simulation, print results, save settings
@@ -273,6 +264,9 @@ fprintf(fid,'%.1f\n',Y3);
 fprintf(fid,'%.1f\n',Y4);
 fclose(fid);
 
+
+%% Log a small subset of time trajectories for post-hoc processing, delete the rest
+
 T1 = f(:,{'time','foot_floor_r_calcn_r_force_X','foot_floor_r_calcn_r_force_Y','foot_floor_r_calcn_r_force_Z','foot_floor_r_calcn_r_torque_X','foot_floor_r_calcn_r_torque_Y','foot_floor_r_calcn_r_torque_Z',...
           'cubic_ankle_bushing_r_tibia_r_torque_X','cubic_ankle_bushing_r_tibia_r_torque_Y','cubic_ankle_bushing_r_tibia_r_torque_Z',...
           'brace_exp_bushing_r_tibia_r_torque_X','brace_exp_bushing_r_tibia_r_torque_Y','brace_exp_bushing_r_tibia_r_torque_Z'});
@@ -311,24 +305,23 @@ writetimetable(TO,[dirN '\nessusOut2.csv']);
 %%% <joint name>on<body>in<frame>_<component>. 
 
 %%%% COMPARE: inclined simulations published by DeMers
-dirDeMers=[dirN '\demers\simulations of ankle co-activation and ankle stretch reflexes\'];
-trialDeMers = 'incline_30.0_activation_0.0';
+% dirDeMers=[dirN '\demers\simulations of ankle co-activation and ankle stretch reflexes\'];
+% trialDeMers = 'incline_30.0_activation_0.0';
 % trialDeMers = 'incline_30.0_gain_5.0_delay_0.06';
-
-%%%% COMPARE: level landing simulation published by DeMers
-% dirDeMers=[dirN '\demers\simulated landing on level ground\results\'];
-% fD = ReadOSIMtxt([dirDeMers '\fwd_ForceReporter_forces.sto']);
+% fD = ReadOSIMtxt([dirDeMers trialDeMers '_forces.sto']);
 % fD=fD.data; forcesD=fD.Properties.VariableNames';
-% cD = ReadOSIMtxt([dirDeMers '\fwd_controls.sto']);
+% cD = ReadOSIMtxt([dirDeMers trialDeMers '_controls.sto']);
 % cD=cD.data; controlsD=cD.Properties.VariableNames';
-% sD = ReadOSIMtxt([dirDeMers '\fwd_states.sto']);
+% sD = ReadOSIMtxt([dirDeMers trialDeMers '_states.sto']);
 % sD=sD.data; statesD=sD.Properties.VariableNames';
 
-fD = ReadOSIMtxt([dirDeMers trialDeMers '_forces.sto']);
+%%%% COMPARE: level landing simulation published by DeMers
+dirDeMers=[dirN '\demers\simulated landing on level ground\results\'];
+fD = ReadOSIMtxt([dirDeMers '\fwd_ForceReporter_forces.sto']);
 fD=fD.data; forcesD=fD.Properties.VariableNames';
-cD = ReadOSIMtxt([dirDeMers trialDeMers '_controls.sto']);
+cD = ReadOSIMtxt([dirDeMers '\fwd_controls.sto']);
 cD=cD.data; controlsD=cD.Properties.VariableNames';
-sD = ReadOSIMtxt([dirDeMers trialDeMers '_states.sto']);
+sD = ReadOSIMtxt([dirDeMers '\fwd_states.sto']);
 sD=sD.data; statesD=sD.Properties.VariableNames';
 
 %PLOTS

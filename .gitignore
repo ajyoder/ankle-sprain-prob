@@ -1,6 +1,3 @@
 
-osim_ankle_axes.asv
-out.log
-err.log
-out.log
+*.asv
 *.log
