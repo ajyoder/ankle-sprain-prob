@@ -40,12 +40,12 @@ end
 
 %% USER: choose between scaling compliance or flexibility, see (Wright et al 2000)
 % (1) Scale compliance (moment)
-% rf2 = r; % f>1 = more stiff (less flexibile)
-% mf2 = m * f; % f>1 = more stiff (less compliance)
+rf2 = r; % f>1 = more stiff (less flexibile)
+mf2 = m * f; % f>1 = more stiff (less compliance)
 
 % (2) Scale flexibility (angle)
-rf2 = r / f; % f>1 = more stiff (less flexibile)
-mf2 = m ; % f>1 = more stiff (less compliance)
+% rf2 = r / f; % f>1 = more stiff (less flexibile)
+% mf2 = m ; % f>1 = more stiff (less compliance)
 
 % (3) Scale flexibility & compliance
 % rf2 = r / f; % f>1 = more stiff (less flexibile)
@@ -69,19 +69,19 @@ end
 
 %% Quick verification plot vs. baseline trajectories
  
-% hfig=figure('name',['rf = ' num2str(fi) sprintf(' (%3.0f%%)',f*100)]);
-% for ii=1:3
-% subplot(3,1,ii); hold on;
-% switch ii
-%     case 1; title('X: Frontal (+ Anterior)');
-%     case 2; title('Y: Transverse (+ Superior)');
-%     case 3; title('Z: Sagittal (+ Right)');
-% end
-% plot(d,m(:,ii),'k:'); %%%baseline
-% plot(d,polyval(p(ii,:),r),'b-');
-% xlim([-40 40]); xlabel('angle (deg)')
-% ylim([-30 30]); ylabel('torque (N-m)')
-% end
+hfig=figure('name',['rf = ' num2str(fi) sprintf(' (%3.0f%%)',f*100)]);
+for ii=1:3
+subplot(3,1,ii); hold on;
+switch ii
+    case 1; title('X: Frontal (+ Anterior)');
+    case 2; title('Y: Transverse (+ Superior)');
+    case 3; title('Z: Sagittal (+ Right)');
+end
+plot(d,m(:,ii),'k:','displayname','baseline'); %%%baseline
+plot(d,polyval(p(ii,:),r),'b-','displayname','scaled');
+xlim([-40 40]); xlabel('angle (deg)')
+ylim([-30 30]); ylabel('torque (N-m)')
+end
 
 
 

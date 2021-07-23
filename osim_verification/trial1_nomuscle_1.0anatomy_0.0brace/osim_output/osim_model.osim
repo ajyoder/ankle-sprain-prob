@@ -5753,11 +5753,11 @@
 					<!--Orientation of bushing frame in body 2 as x-y-z, body fixed Euler rotations.-->
 					<orientation_body_2>0 0 0</orientation_body_2>
 					<!--Expression defining the contribution of theta_x deflection to the moment about body_2's x axis.The expression is a string and can not have any whitespace separating characters.-->
-					<Mx_expression>19.04190*theta_x-59.15216*theta_x^2+338.03176*theta_x^3</Mx_expression>
+					<Mx_expression>0.00000*theta_x+0.00000*theta_x^2+0.00000*theta_x^3</Mx_expression>
 					<!--Expression defining the contribution of theta_y deflection to the moment about body_2's y axis.The expression is a string and can not have any whitespace separating characters.-->
-					<My_expression>7.23592*theta_y-20.32243*theta_y^2+129.05583*theta_y^3</My_expression>
+					<My_expression>0.00000*theta_y+0.00000*theta_y^2+0.00000*theta_y^3</My_expression>
 					<!--Expression defining the contribution of theta_z deflection to the moment about body_2's z axis.The expression is a string and can not have any whitespace separating characters.-->
-					<Mz_expression>11.96374*theta_z+31.49904*theta_z^2+67.35616*theta_z^3</Mz_expression>
+					<Mz_expression>0.00000*theta_z+0.00000*theta_z^2+0.00000*theta_z^3</Mz_expression>
 					<!--Expression defining the contribution of x deflection to the force in the x direction.The expression is a string and can not have any whitespace separating characters.-->
 					<Fx_expression>0.0</Fx_expression>
 					<!--Expression defining the contribution of y deflection to the force in the y direction.The expression is a string and can not have any whitespace separating characters.-->

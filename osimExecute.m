@@ -14,17 +14,17 @@ clear all
 % % % m1i =    0.000   ; %max_isometric_force (0 = 100% strength)
 % % % bi  =    NaN     ; %stiffness, "brace", scale factor 0=100%, +0.5=150% baseline, f > 1 = more stiff; set NaN for no brace 
 
-pdi =     30.0    ; 
+pdi =     30.0   ; 
 hi  =    0.300   ; 
 ei  =    50000000; 
 di  =    5.0     ; 
 fi  =    0.000   ; 
-ci  =    0.600   ; 
-rgi =    5.000   ; 
+ci  =    0.000   ; 
+rgi =    0.000   ; 
 j1i =  -34.000   ; 
-j2i =   -5.720   ;
+j2i =    0.000   ;
 m1i =    0.000   ;  
-bi  =    NaN     ;  
+bi  =    1.0   ;  
 
 DISABLE_REFLEXES = false;
 DISABLE_COACT = false;
@@ -202,10 +202,15 @@ stateSto.print(statesFileMod);
 %% Adjust muscle parameters
 muscles=model.updMuscles;
 
-for mus=[muslist1 muslist2]
-mus1=Thelen2003Muscle.safeDownCast( muscles.get(mus{:}) );
-Fmax=mus1.get_max_isometric_force;
-mus1.set_max_isometric_force( Fmax + Fmax*m1i )
+% for mus=[muslist1 muslist2]
+% mus1=Thelen2003Muscle.safeDownCast( muscles.get(mus{:}) );
+% Fmax=mus1.get_max_isometric_force;
+% mus1.set_max_isometric_force( Fmax + Fmax*m1i )
+% end
+
+for mi = 1:muscles.getSize
+mus1=Thelen2003Muscle.safeDownCast( muscles.get(mi-1) );
+mus1.set_max_isometric_force( 0.0 )
 end
 
 %% Execute forward simulation, print results, save settings
@@ -352,20 +357,9 @@ XLM=get(hax2,'xlim');
 plot([XLM(1) XLM(2)],[0 0],'k-')
 legend([pf,pfD],{'fy','fyD'})
 
-passT=sqrt([...
-f.cubic_ankle_bushing_r_tibia_r_torque_X.^2+...
-f.cubic_ankle_bushing_r_tibia_r_torque_Y.^2+...
-f.cubic_ankle_bushing_r_tibia_r_torque_Z.^2]);
-
-passTD=sqrt([...
-fD.cubic_ankle_bushing_r_tibia_r_torque_X.^2+...
-fD.cubic_ankle_bushing_r_tibia_r_torque_Y.^2+...
-fD.cubic_ankle_bushing_r_tibia_r_torque_Z.^2]);
-
-passBC=sqrt([...
-f.brace_exp_bushing_r_tibia_r_torque_X.^2+...
-f.brace_exp_bushing_r_tibia_r_torque_Y.^2+...
-f.brace_exp_bushing_r_tibia_r_torque_Z.^2]);
+passT=f.cubic_ankle_bushing_r_tibia_r_torque_X;
+passTD=fD.cubic_ankle_bushing_r_tibia_r_torque_X;
+passBC=f.brace_exp_bushing_r_tibia_r_torque_X;
 
 hax3=subplot(Nr,Nc,3); hold on; title([trial 'Passive Ankle Stiff (Nm)'],'interpreter','none')
 hpt=plot(t,passT,'k-');
@@ -408,7 +402,7 @@ hs1D = plot(sD.time, sD{:,plotlist1D}, 'linestyle',':');
 set(hs1D,{'displayname'},plotlist1D);
 set(hs1D,{'tag'},plotlist1D);
 
-[ h_show,h_hide ] = FindObjs( hax5, [musEv musInv],'line');
+% [ h_show,h_hide ] = FindObjs( hax5, [musEv musInv],'line');
 
 hax6=subplot(Nr,Nc,6); hold on
 title('states - muscle fiber length')
@@ -421,62 +415,38 @@ hs2D = plot(sD.time, sD{:,plotlist2D}, 'linestyle',':');
 set(hs2D,{'displayname'},plotlist2D);
 set(hs2D,{'tag'},plotlist2D);
 
-[ h_show,h_hide ] = FindObjs( hax6, [musEv musInv],'line');
+% [ h_show,h_hide ] = FindObjs( hax6, [musEv musInv],'line');
 
 %% Joint Reactions
-figure
-
-% knee_r_on_tibia_r_in_tibia_r
-% ankle_r_on_talus_r_in_talus_r
-% subtalar_r_on_calcn_r_in_calcn_r
-
-subplot(3,1,1);hold on
-plot(t,r.ankle_r_on_talus_r_in_talus_r_fx/weight,'displayname','fx');
-plot(t,r.ankle_r_on_talus_r_in_talus_r_fy/weight,'displayname','fy');
-plot(t,r.ankle_r_on_talus_r_in_talus_r_fz/weight,'displayname','fz');
-ylabel('BW')
-xlim([0.001 0.15])
-subplot(3,1,2);hold on
-plot(t,r.ankle_r_on_talus_r_in_talus_r_mx/mass,'displayname','mx');
-plot(t,r.ankle_r_on_talus_r_in_talus_r_my/mass,'displayname','my');
-plot(t,r.ankle_r_on_talus_r_in_talus_r_mz/mass,'displayname','mz');
-ylabel('Nm/kg')
-xlim([0.001 0.15])
-subplot(3,1,3);hold on
-plot(t,r.ankle_r_on_talus_r_in_talus_r_px,'displayname','px');
-plot(t,r.ankle_r_on_talus_r_in_talus_r_py,'displayname','py');
-plot(t,r.ankle_r_on_talus_r_in_talus_r_pz,'displayname','pz');
-ylabel('location (m)')
-xlim([0.001 0.15])
-
-% r.Properties.VariableNames
+% figure
 % 
-%     {'knee_r_on_tibia_r_in_tibia_r_fx'           }
-%     {'knee_r_on_tibia_r_in_tibia_r_fy'           }
-%     {'knee_r_on_tibia_r_in_tibia_r_fz'           }
-%     {'knee_r_on_tibia_r_in_tibia_r_mx'           }
-%     {'knee_r_on_tibia_r_in_tibia_r_my'           }
-%     {'knee_r_on_tibia_r_in_tibia_r_mz'           }
-%     {'knee_r_on_tibia_r_in_tibia_r_px'           }
-%     {'knee_r_on_tibia_r_in_tibia_r_py'           }
-%     {'knee_r_on_tibia_r_in_tibia_r_pz'           }
-%        
-%     {'ankle_r_on_talus_r_in_talus_r_fx'          }
-%     {'ankle_r_on_talus_r_in_talus_r_fy'          }
-%     {'ankle_r_on_talus_r_in_talus_r_fz'          }
-%     {'ankle_r_on_talus_r_in_talus_r_mx'          }
-%     {'ankle_r_on_talus_r_in_talus_r_my'          }
-%     {'ankle_r_on_talus_r_in_talus_r_mz'          }
-%     {'ankle_r_on_talus_r_in_talus_r_px'          }
-%     {'ankle_r_on_talus_r_in_talus_r_py'          }
-%     {'ankle_r_on_talus_r_in_talus_r_pz'          }
-%     
-%     {'subtalar_r_on_calcn_r_in_calcn_r_fy'       }
-%     {'subtalar_r_on_calcn_r_in_calcn_r_fz'       }
-%     {'subtalar_r_on_calcn_r_in_calcn_r_mx'       }
-%     {'subtalar_r_on_calcn_r_in_calcn_r_my'       }
-%     {'subtalar_r_on_calcn_r_in_calcn_r_mz'       }
-%     {'subtalar_r_on_calcn_r_in_calcn_r_px'       }
-%     {'subtalar_r_on_calcn_r_in_calcn_r_py'       }
-%     {'subtalar_r_on_calcn_r_in_calcn_r_pz'       }
+% % % % knee_r_on_tibia_r_in_tibia_r
+% % % % ankle_r_on_talus_r_in_talus_r
+% % % % subtalar_r_on_calcn_r_in_calcn_r
+% 
+% subplot(3,1,1);hold on
+% plot(t,r.ankle_r_on_talus_r_in_talus_r_fx/weight,'displayname','fx');
+% plot(t,r.ankle_r_on_talus_r_in_talus_r_fy/weight,'displayname','fy');
+% plot(t,r.ankle_r_on_talus_r_in_talus_r_fz/weight,'displayname','fz');
+% ylabel('BW')
+% xlim([0.001 0.15])
+% subplot(3,1,2);hold on
+% plot(t,r.ankle_r_on_talus_r_in_talus_r_mx/mass,'displayname','mx');
+% plot(t,r.ankle_r_on_talus_r_in_talus_r_my/mass,'displayname','my');
+% plot(t,r.ankle_r_on_talus_r_in_talus_r_mz/mass,'displayname','mz');
+% ylabel('Nm/kg')
+% xlim([0.001 0.15])
+% subplot(3,1,3);hold on
+% plot(t,r.ankle_r_on_talus_r_in_talus_r_px,'displayname','px');
+% plot(t,r.ankle_r_on_talus_r_in_talus_r_py,'displayname','py');
+% plot(t,r.ankle_r_on_talus_r_in_talus_r_pz,'displayname','pz');
+% ylabel('location (m)')
+% xlim([0.001 0.15])
 
+%%
+figure; hold on
+title('muscle force (all)')
+muscnames = f.Properties.VariableNames(68:116);
+hm1=plot(f{:,68:116});
+set(hm1,{'displayname'},muscnames');
+set(hm1,{'tag'},muscnames');
