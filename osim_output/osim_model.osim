@@ -228,7 +228,7 @@
 										<!--Coordinate can describe rotational, translational, or coupled motion. Defaults to rotational.-->
 										<motion_type>rotational</motion_type>
 										<!--The value of this coordinate before any value has been set. Rotational coordinate value is in radians and Translational in meters.-->
-										<default_value>0</default_value>
+										<default_value>0.523598775598299</default_value>
 										<!--The speed value of this coordinate before any value has been set. Rotational coordinate value is in rad/s and Translational in m/s.-->
 										<default_speed_value>0</default_speed_value>
 										<!--The minimum and maximum values that the coordinate can range between. Rotational coordinate range in radians and Translational in meters.-->
@@ -8969,7 +8969,7 @@
 					<!--Compute muscle dynamics ignoring activation dynamics. Activation is equivalent to excitation.-->
 					<ignore_activation_dynamics>false</ignore_activation_dynamics>
 					<!--Assumed activation level if none is assigned.-->
-					<default_activation>0</default_activation>
+					<default_activation>0.55932</default_activation>
 					<!--Assumed fiber length, unless otherwise assigned.-->
 					<default_fiber_length>0.1</default_fiber_length>
 					<!--time constant for ramping up muscle activation-->
@@ -9075,7 +9075,7 @@
 					<!--Compute muscle dynamics ignoring activation dynamics. Activation is equivalent to excitation.-->
 					<ignore_activation_dynamics>false</ignore_activation_dynamics>
 					<!--Assumed activation level if none is assigned.-->
-					<default_activation>0</default_activation>
+					<default_activation>0.55932</default_activation>
 					<!--Assumed fiber length, unless otherwise assigned.-->
 					<default_fiber_length>0.1</default_fiber_length>
 					<!--time constant for ramping up muscle activation-->
@@ -9177,7 +9177,7 @@
 					<!--Compute muscle dynamics ignoring activation dynamics. Activation is equivalent to excitation.-->
 					<ignore_activation_dynamics>false</ignore_activation_dynamics>
 					<!--Assumed activation level if none is assigned.-->
-					<default_activation>0</default_activation>
+					<default_activation>0.55932</default_activation>
 					<!--Assumed fiber length, unless otherwise assigned.-->
 					<default_fiber_length>0.1</default_fiber_length>
 					<!--time constant for ramping up muscle activation-->
@@ -9357,7 +9357,7 @@
 					<!--Compute muscle dynamics ignoring activation dynamics. Activation is equivalent to excitation.-->
 					<ignore_activation_dynamics>false</ignore_activation_dynamics>
 					<!--Assumed activation level if none is assigned.-->
-					<default_activation>0</default_activation>
+					<default_activation>0.6</default_activation>
 					<!--Assumed fiber length, unless otherwise assigned.-->
 					<default_fiber_length>0.1</default_fiber_length>
 					<!--time constant for ramping up muscle activation-->
@@ -9459,7 +9459,7 @@
 					<!--Compute muscle dynamics ignoring activation dynamics. Activation is equivalent to excitation.-->
 					<ignore_activation_dynamics>false</ignore_activation_dynamics>
 					<!--Assumed activation level if none is assigned.-->
-					<default_activation>0</default_activation>
+					<default_activation>0.6</default_activation>
 					<!--Assumed fiber length, unless otherwise assigned.-->
 					<default_fiber_length>0.1</default_fiber_length>
 					<!--time constant for ramping up muscle activation-->
@@ -9545,7 +9545,7 @@
 					<!--Compute muscle dynamics ignoring activation dynamics. Activation is equivalent to excitation.-->
 					<ignore_activation_dynamics>false</ignore_activation_dynamics>
 					<!--Assumed activation level if none is assigned.-->
-					<default_activation>0</default_activation>
+					<default_activation>0.6</default_activation>
 					<!--Assumed fiber length, unless otherwise assigned.-->
 					<default_fiber_length>0.1</default_fiber_length>
 					<!--time constant for ramping up muscle activation-->
@@ -9643,7 +9643,7 @@
 					<!--Compute muscle dynamics ignoring activation dynamics. Activation is equivalent to excitation.-->
 					<ignore_activation_dynamics>false</ignore_activation_dynamics>
 					<!--Assumed activation level if none is assigned.-->
-					<default_activation>0</default_activation>
+					<default_activation>0.6</default_activation>
 					<!--Assumed fiber length, unless otherwise assigned.-->
 					<default_fiber_length>0.1</default_fiber_length>
 					<!--time constant for ramping up muscle activation-->
@@ -9745,7 +9745,7 @@
 					<!--Compute muscle dynamics ignoring activation dynamics. Activation is equivalent to excitation.-->
 					<ignore_activation_dynamics>false</ignore_activation_dynamics>
 					<!--Assumed activation level if none is assigned.-->
-					<default_activation>0</default_activation>
+					<default_activation>0.55932</default_activation>
 					<!--Assumed fiber length, unless otherwise assigned.-->
 					<default_fiber_length>0.1</default_fiber_length>
 					<!--time constant for ramping up muscle activation-->
@@ -10764,7 +10764,7 @@
 					<!--The list of model actuators that this controller will control.The keyword ALL indicates the controller will controll all the acuators in the model-->
 					<actuator_list>per_brev_r per_long_r per_tert_r ext_dig_r</actuator_list>
 					<!--Factor by which the stretch reflex is scaled.-->
-					<gain>0</gain>
+					<gain>5</gain>
 					<!--Time delay (seconds) between the musle stretch and the stretch reflex signal-->
 					<delay>0.06</delay>
 				</DelayedPathReflexController>
@@ -10774,7 +10774,7 @@
 					<!--The list of model actuators that this controller will control.The keyword ALL indicates the controller will controll all the acuators in the model-->
 					<actuator_list>tib_post_r flex_dig_r flex_hal_r ext_hal_r</actuator_list>
 					<!--Factor by which the stretch reflex is scaled.-->
-					<gain>0</gain>
+					<gain>5</gain>
 					<!--Time delay (seconds) between the musle stretch and the stretch reflex signal-->
 					<delay>0.06</delay>
 				</DelayedPathReflexController>
@@ -10787,16 +10787,16 @@
 					<FunctionSet name="ControlFunctions">
 						<objects>
 							<Constant>
-								<value>0</value>
+								<value>0.55932</value>
 							</Constant>
 							<Constant>
-								<value>0</value>
+								<value>0.55932</value>
 							</Constant>
 							<Constant>
-								<value>0</value>
+								<value>0.55932</value>
 							</Constant>
 							<Constant>
-								<value>0</value>
+								<value>0.55932</value>
 							</Constant>
 						</objects>
 						<groups />
@@ -10811,16 +10811,16 @@
 					<FunctionSet name="ControlFunctions">
 						<objects>
 							<Constant>
-								<value>0</value>
+								<value>0.6</value>
 							</Constant>
 							<Constant>
-								<value>0</value>
+								<value>0.6</value>
 							</Constant>
 							<Constant>
-								<value>0</value>
+								<value>0.6</value>
 							</Constant>
 							<Constant>
-								<value>0</value>
+								<value>0.6</value>
 							</Constant>
 						</objects>
 						<groups />

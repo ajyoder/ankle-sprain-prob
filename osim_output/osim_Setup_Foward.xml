@@ -80,7 +80,7 @@
 					<!--The name of a file containing forces storage.If a file name is provided, the applied forces for all actuators will be constructed from the forces_file instead of from the states.  This option should be used to calculated joint loads from static optimization results.-->
 					<forces_file />
 					<!--Names of the joints on which to perform the analysis.The key word 'All' indicates that the analysis should be performed for all bodies.-->
-					<joint_names> ALL</joint_names>
+					<joint_names> knee_r ankle_r subtalar_r hip_r</joint_names>
 					<!--Choice of body (parent or child) for which the reaction loads are calculated.  Child body is default.  If the array has one entry only, that selection is applied to all chosen joints.-->
 					<apply_on_bodies> child</apply_on_bodies>
 					<!--Choice of frame (ground, parent, or child) in which the calculated reactions are expressed.  ground body is default.  If the array has one entry only, that selection is applied to all chosen joints.-->
