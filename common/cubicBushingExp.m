@@ -40,12 +40,12 @@ end
 
 %% USER: choose between scaling compliance or flexibility, see (Wright et al 2000)
 % (1) Scale compliance (moment)
-rf2 = r; % f>1 = more stiff (less flexibile)
-mf2 = m * f; % f>1 = more stiff (less compliance)
+% rf2 = r; % f>1 = more stiff (less flexibile)
+% mf2 = m * f; % f>1 = more stiff (less compliance)
 
 % (2) Scale flexibility (angle)
-% rf2 = r / f; % f>1 = more stiff (less flexibile)
-% mf2 = m ; % f>1 = more stiff (less compliance)
+rf2 = r / f; % f>1 = more stiff (less flexibile)
+mf2 = m ; % f>1 = more stiff (less compliance)
 
 % (3) Scale flexibility & compliance
 % rf2 = r / f; % f>1 = more stiff (less flexibile)

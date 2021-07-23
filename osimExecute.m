@@ -202,16 +202,18 @@ stateSto.print(statesFileMod);
 %% Adjust muscle parameters
 muscles=model.updMuscles;
 
-% for mus=[muslist1 muslist2]
-% mus1=Thelen2003Muscle.safeDownCast( muscles.get(mus{:}) );
-% Fmax=mus1.get_max_isometric_force;
-% mus1.set_max_isometric_force( Fmax + Fmax*m1i )
-% end
-
-for mi = 1:muscles.getSize
-mus1=Thelen2003Muscle.safeDownCast( muscles.get(mi-1) );
-mus1.set_max_isometric_force( 0.0 )
+for mus=[muslist1 muslist2]
+mus1=Thelen2003Muscle.safeDownCast( muscles.get(mus{:}) );
+Fmax=mus1.get_max_isometric_force;
+mus1.set_max_isometric_force( Fmax + Fmax*m1i )
 end
+
+%%%% Comment the above out and use this to effectively turn off all force
+%%%% contributions from muscles (for verification)
+% for mi = 1:muscles.getSize
+% mus1=Thelen2003Muscle.safeDownCast( muscles.get(mi-1) );
+% mus1.set_max_isometric_force( 0.0 )
+% end
 
 %% Execute forward simulation, print results, save settings
 model.initSystem;
@@ -402,7 +404,7 @@ hs1D = plot(sD.time, sD{:,plotlist1D}, 'linestyle',':');
 set(hs1D,{'displayname'},plotlist1D);
 set(hs1D,{'tag'},plotlist1D);
 
-% [ h_show,h_hide ] = FindObjs( hax5, [musEv musInv],'line');
+[ h_show,h_hide ] = FindObjs( hax5, [musEv musInv],'line');
 
 hax6=subplot(Nr,Nc,6); hold on
 title('states - muscle fiber length')
@@ -415,38 +417,6 @@ hs2D = plot(sD.time, sD{:,plotlist2D}, 'linestyle',':');
 set(hs2D,{'displayname'},plotlist2D);
 set(hs2D,{'tag'},plotlist2D);
 
-% [ h_show,h_hide ] = FindObjs( hax6, [musEv musInv],'line');
+[ h_show,h_hide ] = FindObjs( hax6, [musEv musInv],'line');
 
-%% Joint Reactions
-% figure
-% 
-% % % % knee_r_on_tibia_r_in_tibia_r
-% % % % ankle_r_on_talus_r_in_talus_r
-% % % % subtalar_r_on_calcn_r_in_calcn_r
-% 
-% subplot(3,1,1);hold on
-% plot(t,r.ankle_r_on_talus_r_in_talus_r_fx/weight,'displayname','fx');
-% plot(t,r.ankle_r_on_talus_r_in_talus_r_fy/weight,'displayname','fy');
-% plot(t,r.ankle_r_on_talus_r_in_talus_r_fz/weight,'displayname','fz');
-% ylabel('BW')
-% xlim([0.001 0.15])
-% subplot(3,1,2);hold on
-% plot(t,r.ankle_r_on_talus_r_in_talus_r_mx/mass,'displayname','mx');
-% plot(t,r.ankle_r_on_talus_r_in_talus_r_my/mass,'displayname','my');
-% plot(t,r.ankle_r_on_talus_r_in_talus_r_mz/mass,'displayname','mz');
-% ylabel('Nm/kg')
-% xlim([0.001 0.15])
-% subplot(3,1,3);hold on
-% plot(t,r.ankle_r_on_talus_r_in_talus_r_px,'displayname','px');
-% plot(t,r.ankle_r_on_talus_r_in_talus_r_py,'displayname','py');
-% plot(t,r.ankle_r_on_talus_r_in_talus_r_pz,'displayname','pz');
-% ylabel('location (m)')
-% xlim([0.001 0.15])
 
-%%
-figure; hold on
-title('muscle force (all)')
-muscnames = f.Properties.VariableNames(68:116);
-hm1=plot(f{:,68:116});
-set(hm1,{'displayname'},muscnames');
-set(hm1,{'tag'},muscnames');
