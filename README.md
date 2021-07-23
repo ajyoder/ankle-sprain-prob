@@ -1,9 +1,10 @@
 # anklesprain
 
-This project extends upon the open source contributions of (DeMers et al 2017):
+This project extends on models and analyses of:
+DeMers MS, Hicks JL, Delp SL. Preparatory co-activation of the ankle muscles may prevent ankle inversion injuries. J Biomech. 2017;52(2017):17-23. 
 
+doi:10.1016/j.jbiomech.2016.11.002
 https://simtk.org/projects/ankle-sprains
-https://doi.org/10.1016/j.jbiomech.2016.11.002
 
 
 Installation:
