@@ -10,22 +10,26 @@
 %%%%                Sensitivity Factors, for input mean & variance, with a
 %%%%                corresponding bar chart of factor mean(std) over a specified range
 
-close all
-clear all
+% close all
+% clear all
 
 addpath(genpath('.\common\'))
 
 %%  Script inputs & options  
-o1=[30 35]; % response levels to extract (leave empty for none)
+o1=[]; % response levels to extract (leave empty for none)
 p1=[.05 .5 .95]; % prob levels to extract (leave empty for none)
-name='mc26'; % study title for display
+trial=31; % study title for display
 XLABEL = 'Subtalar Supination (Inv, Deg)'; %name of reponse being analyzed
-PLOT_CORRELATION_SCATTER = 1;  % XY scatter plots corresponding to Tcorr results table
+PLOT_CORRELATION_SCATTER = 0;  % XY scatter plots corresponding to Tcorr results table
+COMPUTE_SENSITIVITIES = 0;
 
 %%%%%% Note: Manual variable definition required for (name, vu=mean, vs=sdev) 
 %%%%%% No easy way to parse these from NESSUS .dat..... but they are needed
 %%%%%% normalize prob sensitivity factors.  Comment out only 1 block
 
+switch trial
+    
+    case 26    
 %%%%%%% MCV26: (UN-BRACED) (incline, 0% co-activation)
 fileZAL='.\results\mc26_incline_c0_b0_r0\ankleSprain.zal';
 fileSMX='.\results\mc26_incline_c0_b0_r0\ankleSprain.smx';
@@ -34,45 +38,52 @@ namesSMX={'DH','GC','GD','SA','AP','AI','MS'};
 vu=[.30, 50002079, 5, 0.0000, -34, 0, 0.00]; %param, mean
 vs=[.05, 5000205,  1, 0.0625,   5, 5, 0.05]; %param, std 
 
+    case 27
 %%%%%%% MCV27: (UN-BRACED) (incline, 10 REFLEX)
-% fileZAL='.\results\mc27_incline_c0_b0_r10\ankleSprain.zal';
-% fileSMX='.\results\mc27_incline_c0_b0_r10\ankleSprain.smx';
-% varsSMX={'caseid','hi','ei','di','fi','rgi','j1i','j2i','m1i','response'};
-% namesSMX={'DH','GC','GD','SA','MR','AP','AI','MS'};
-% vu=[.30, 50002079, 5, 0.0000, 10, -34, 0, 0.00]; %param, mean
-% vs=[.05, 5000205,  1, 0.0625, 1,  5, 5, 0.05]; %param, std 
+fileZAL='.\results\mc27_incline_c0_b0_r10\ankleSprain.zal';
+fileSMX='.\results\mc27_incline_c0_b0_r10\ankleSprain.smx';
+varsSMX={'caseid','hi','ei','di','fi','rgi','j1i','j2i','m1i','response'};
+namesSMX={'DH','GC','GD','SA','MR','AP','AI','MS'};
+vu=[.30, 50002079, 5, 0.0000, 10, -34, 0, 0.00]; %param, mean
+vs=[.05, 5000205,  1, 0.0625, 1,  5, 5, 0.05]; %param, std 
 
+    case 28
 %%%%%%% MCV28: (UN-BRACED) (incline, 60% co-activation)
-% fileZAL='.\results\mc28_incline_c60_b0_r0\ankleSprain.zal';
-% fileSMX='.\results\mc28_incline_c60_b0_r0\ankleSprain.smx';
-% varsSMX={'caseid','hi','ei','di','fi','ci','j1i','j2i','m1i','response'};
-% namesSMX={'DH','GC','GD','SA','MC','AP','AI','MS'};
-% vu=[.30, 50002079, 5, 0.0000,  0.6, -34, 0, 0.00]; %param, mean
-% vs=[.05, 5000205,  1, 0.0625, 0.05,   5, 5, 0.05]; %param, std 
+fileZAL='.\results\mc28_incline_c60_b0_r0\ankleSprain.zal';
+fileSMX='.\results\mc28_incline_c60_b0_r0\ankleSprain.smx';
+varsSMX={'caseid','hi','ei','di','fi','ci','j1i','j2i','m1i','response'};
+namesSMX={'DH','GC','GD','SA','MC','AP','AI','MS'};
+vu=[.30, 50002079, 5, 0.0000,  0.6, -34, 0, 0.00]; %param, mean
+vs=[.05, 5000205,  1, 0.0625, 0.05,   5, 5, 0.05]; %param, std 
 
+    case 29
 %%%%%%% MCV29: (BRACED) (incline, 240% stiffness)
-% fileZAL='.\results\mc29_incline_c0_b240_r0\ankleSprain.zal';
-% fileSMX='.\results\mc29_incline_c0_b240_r0\ankleSprain.smx';
-% varsSMX={'caseid','hi','ei','di','fi','j1i','j2i','m1i','bi','response'};
-% namesSMX={'DH','GC','GD','SA','AP','AI','MS','SB'};
-% vu=[.30, 50002079, 5, 0.0000, -34, 0, 0.00, 1.40]; %param, mean
-% vs=[.05, 5000205,  1, 0.0625,   5, 5, 0.05, 0.0625]; %param, std 
+fileZAL='.\results\mc29_incline_c0_b240_r0\ankleSprain.zal';
+fileSMX='.\results\mc29_incline_c0_b240_r0\ankleSprain.smx';
+varsSMX={'caseid','hi','ei','di','fi','j1i','j2i','m1i','bi','response'};
+namesSMX={'DH','GC','GD','SA','AP','AI','MS','SB'};
+vu=[.30, 50002079, 5, 0.0000, -34, 0, 0.00, 1.40]; %param, mean
+vs=[.05, 5000205,  1, 0.0625,   5, 5, 0.05, 0.0625]; %param, std 
 
+    case 30
 %%%%%%% MCV30: (BRACED) (incline, brace + reflex + co-activation)
-% fileZAL='.\results\mc30_incline_c20_b150_r5\ankleSprain.zal';
-% fileSMX='.\results\mc30_incline_c20_b150_r5\ankleSprain.smx';
-% varsSMX={'caseid','hi','ei','di','fi','ci','rgi','j1i','j2i','m1i','bi','response'};
-% namesSMX={'DH','GC','GD','SA','MC','MR','AP','AI','MS','SB'};
-% vu=[.30, 50002079, 5, 0.0000, 0.20, 5, -34, 0, 0.00, 0.50]; %param, mean
-% vs=[.05, 5000205,  1, 0.0625, 0.05, 1,   5, 5, 0.05, 0.0625]; %param, std 
+fileZAL='.\results\mc30_incline_c20_b150_r5\ankleSprain.zal';
+fileSMX='.\results\mc30_incline_c20_b150_r5\ankleSprain.smx';
+varsSMX={'caseid','hi','ei','di','fi','ci','rgi','j1i','j2i','m1i','bi','response'};
+namesSMX={'DH','GC','GD','SA','MC','MR','AP','AI','MS','SB'};
+vu=[.30, 50002079, 5, 0.0000, 0.20, 5, -34, 0, 0.00, 0.50]; %param, mean
+vs=[.05, 5000205,  1, 0.0625, 0.05, 1,   5, 5, 0.05, 0.0625]; %param, std 
 
+    case 31
 %%%%%%% MCV31: (UN-BRACED) (level, 0% co-activation)
-% fileZAL='.\results\mc31_level_c0_b0_r0\ankleSprain.zal';
-% fileSMX='.\results\mc31_level_c0_b0_r0\ankleSprain.smx';
-% varsSMX={'caseid','hi','ei','di','fi','j1i','j2i','m1i','response'};
-% namesSMX={'DH','GC','GD','SA','AP','AI','MS'};
-% vu=[.30, 50002079, 5, 0.0000, -34, 0, 0.00]; %param, mean
-% vs=[.05, 5000205,  1, 0.0625,   5, 5, 0.05]; %param, std 
+fileZAL='.\results\mc31_level_c0_b0_r0\ankleSprain.zal';
+fileSMX='.\results\mc31_level_c0_b0_r0\ankleSprain.smx';
+varsSMX={'caseid','hi','ei','di','fi','j1i','j2i','m1i','response'};
+namesSMX={'DH','GC','GD','SA','AP','AI','MS'};
+vu=[.30, 50002079, 5, 0.0000, -34, 0, 0.00]; %param, mean
+vs=[.05, 5000205,  1, 0.0625,   5, 5, 0.05]; %param, std 
+
+end %SWITCH
 
 %% Read in text files
 varsZAL=varsSMX(2:(end-1));
@@ -81,6 +92,7 @@ trialid=(1:size(dataSMX(2:end,:),1))';
 Tsmx=array2table( [trialid, dataSMX(2:end,1:(end-1))] ,'variablenames',varsSMX);
 Tsmx=sortrows(Tsmx,size(Tsmx,2));
 R=Tsmx{:,end}; %response
+name = ['mc' num2str(trial)];
 
 %% Correlations
 Tcorr = {};
@@ -122,7 +134,7 @@ PLOW = 0;  PHIGH = 1;
 [~,iHigh]=min(abs(CDF-PHIGH)); 
 
 hfig2=figure('name',name,'position',[639    34   560   420]); hold on;
-plot(R2(iLow:iHigh),CDF(iLow:iHigh),'ko');
+plot(R2(iLow:iHigh),CDF(iLow:iHigh),'ko','displayname',name);
 xlim([-10 55]);xticks(-10:10:50)
 XLM=get(gca,'xlim');
 xlim([XLM(1) XLM(2)])
@@ -150,6 +162,7 @@ text(iR,0,sprintf('%.0f',iR),'VerticalAlignment','top','HorizontalAlignment','ce
 end
 
 
+if COMPUTE_SENSITIVITIES
 %% Sensitivity factors
 dataZAL=readmatrix(fileZAL,'FileType','text','range',[7 1]); %6 header rows
 %%% (Z,u,p,<vars>,<du>,<ds>) thus with N variables, the sensitivity columns
@@ -240,6 +253,6 @@ set(hax3,'xlim',[0 numel(varsPLOT)+1],'xtick',1:numel(varsPLOT),'xticklabel',nam
 title(hax3,'Probabilistic Sensitivity (Mean, 1SD)')
 legend(hbar,{'S_{\mu}','S_{\sigma}'})
 
-
+end
 
 

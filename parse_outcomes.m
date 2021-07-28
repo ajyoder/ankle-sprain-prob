@@ -48,7 +48,7 @@ for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
         clc; disp(['Working on STUDY ',STUDY{i},' trial... ',sprintf('%06d',j-1)]);
         
         % write the filename of the output file of interest
-        path = ['C:/nessus/ankle-sprain/' STUDY{i},'/F/',sprintf('%06d',j-1),'/nessusOut2.csv'];
+        path = ['C:\nessus\ankle-sprain\' STUDY{i},'/F/',sprintf('%06d',j-1),'/nessusOut2.csv'];
         
         % read the columns of output data for kinematics/kinetics
         % cols in input file, indexed from 0 (NOT from 1)...
@@ -87,7 +87,6 @@ for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
         % linkage is TIBIA.{ankle-joint}.TALUS.{subtalar-joint}.CALCANEUS
         % the ref frame for each body is initially parallel to Global
         tc_ax = [-0.10501355 -0.17402245 +0.97912632]'; % talocrural axis defined in tibia body frame
-        tibax = [+0.00000000 +0.00000000 +1.00000000]'; % considering JCS motion, talocrural is exactly Z-axis
         st_ax = [+0.78717961 +0.60474746 -0.12094949]'; % subtalar axis defined in talus body frame
         
         % for each time increment in a single simulation
@@ -172,29 +171,6 @@ for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
 
         end
         
-        % extract the max values and their indices... 1=dfx, 2=inv, 3=int
-        [jcs_mx(1,j,i),jcs_mx_i(1,j,i)] = minmax(jcs(:,1,j,i));
-        [jcs_mx(2,j,i),jcs_mx_i(2,j,i)] = minmax(jcs(:,2,j,i));
-        [jcs_mx(3,j,i),jcs_mx_i(3,j,i)] = minmax(jcs(:,3,j,i));
-        % extract the max values and their indices... 4=dfx_dot, 5=inv_dot, 6=int_dot
-        [jcs_mx(4,j,i),jcs_mx_i(4,j,i)] = minmax(jcs(:,4,j,i));
-        [jcs_mx(5,j,i),jcs_mx_i(5,j,i)] = minmax(jcs(:,5,j,i));
-        [jcs_mx(6,j,i),jcs_mx_i(6,j,i)] = minmax(jcs(:,6,j,i));
-        % extract the max values and their indices... 7=M_talocrural, 8=M_subtalar
-        [jcs_mx(7,j,i),jcs_mx_i(7,j,i)] = minmax(jcs(:,7,j,i));
-        [jcs_mx(8,j,i),jcs_mx_i(8,j,i)] = minmax(jcs(:,8,j,i));
-        % extract the max values and their indices... 9=M_JCS_dfx, 10=M_JCS_inv, 11=M_JCS_int
-        [jcs_mx(9,j,i),jcs_mx_i(9,j,i)] = minmax(jcs(:,9,j,i));
-        [jcs_mx(10,j,i),jcs_mx_i(10,j,i)] = minmax(jcs(:,10,j,i));
-        [jcs_mx(11,j,i),jcs_mx_i(11,j,i)] = minmax(jcs(:,11,j,i));
-        % extract the max values and their indices... 12=B_talocrural, 13=B_subtalar
-        [jcs_mx(12,j,i),jcs_mx_i(12,j,i)] = minmax(jcs(:,12,j,i));
-        [jcs_mx(13,j,i),jcs_mx_i(13,j,i)] = minmax(jcs(:,13,j,i));
-        % extract the max values and their indices... 14=B_JCS_dfx, 15=B_JCS_inv, 16=B_JCS_int
-        [jcs_mx(14,j,i),jcs_mx_i(14,j,i)] = minmax(jcs(:,14,j,i));
-        [jcs_mx(15,j,i),jcs_mx_i(15,j,i)] = minmax(jcs(:,15,j,i));
-        [jcs_mx(16,j,i),jcs_mx_i(16,j,i)] = minmax(jcs(:,16,j,i));
-
         % keep the anatomical variables... already have whole vectors from the output file (j=trial, i=STUDY)
         % 1=q1, 2=q2, 3=q1_dot, 4=q2_dot
         atm(:,1,j,i) = tc_angle; % talocrural angle // OSim ankle joint axis
@@ -202,10 +178,61 @@ for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
         atm(:,3,j,i) = tc_veloc; % talocrural joint angular velocity // q1_dot
         atm(:,4,j,i) = st_veloc; % subtalar joint angular velocity // q2_dot
         % extract the max values and their indices... 1=q1, 2=q2, 3=q1_dot, 4=q2_dot
-        [atm_mx(1,j,i),atm_mx_i(1,j,i)] = minmax(atm(:,1,j,i));
-        [atm_mx(2,j,i),atm_mx_i(2,j,i)] = minmax(atm(:,2,j,i));
-        [atm_mx(3,j,i),atm_mx_i(3,j,i)] = minmax(atm(:,3,j,i));
-        [atm_mx(4,j,i),atm_mx_i(4,j,i)] = minmax(atm(:,4,j,i));
+        [atm_mx(1,j,i),atm_mx_i(1,j,i)] = max(atm(:,1,j,i));
+        [atm_mx(2,j,i),atm_mx_i(2,j,i)] = max(atm(:,2,j,i));
+        [atm_mx(3,j,i),atm_mx_i(3,j,i)] = max(atm(:,3,j,i));
+        [atm_mx(4,j,i),atm_mx_i(4,j,i)] = max(atm(:,4,j,i));
+
+        % extract the max values and their indices... 1=dfx, 2=inv, 3=int
+        [jcs_mx(1,j,i),jcs_mx_i(1,j,i)] = max(jcs(:,1,j,i));
+        [jcs_mx(2,j,i),jcs_mx_i(2,j,i)] = max(jcs(:,2,j,i));
+        [jcs_mx(3,j,i),jcs_mx_i(3,j,i)] = max(jcs(:,3,j,i));
+        % extract the max values and their indices... 4=dfx_dot, 5=inv_dot, 6=int_dot
+        [jcs_mx(4,j,i),jcs_mx_i(4,j,i)] = max(jcs(:,4,j,i));
+        [jcs_mx(5,j,i),jcs_mx_i(5,j,i)] = max(jcs(:,5,j,i));
+        [jcs_mx(6,j,i),jcs_mx_i(6,j,i)] = max(jcs(:,6,j,i));
+        
+        % extract the max values and their indices... 7=M_talocrural, 8=M_subtalar
+        %[jcs_mx(7,j,i),jcs_mx_i(7,j,i)] = max(jcs(:,7,j,i));
+        %[jcs_mx(8,j,i),jcs_mx_i(8,j,i)] = max(jcs(:,8,j,i));
+        % extract the value of the moments corresponding to the instant of peak angle
+        jcs_mx(7,j,i)   = jcs(atm_mx_i(1,j,i),7,j,i);
+        jcs_mx_i(7,j,i) = atm_mx_i(1,j,i);
+        jcs_mx(8,j,i)   = jcs(atm_mx_i(2,j,i),8,j,i);
+        jcs_mx_i(8,j,i) = atm_mx_i(2,j,i);
+        
+        % extract the max values and their indices... 9=M_JCS_dfx, 10=M_JCS_inv, 11=M_JCS_int
+        %[jcs_mx(9,j,i),jcs_mx_i(9,j,i)] = max(jcs(:,9,j,i));
+        %[jcs_mx(10,j,i),jcs_mx_i(10,j,i)] = max(jcs(:,10,j,i));
+        %[jcs_mx(11,j,i),jcs_mx_i(11,j,i)] = max(jcs(:,11,j,i));
+        % extract the value of the moments corresponding to the instant of peak angle
+        jcs_mx(9,j,i)    = jcs(jcs_mx_i(1,j,i),9,j,i);
+        jcs_mx_i(9,j,i)  = jcs_mx_i(1,j,i);
+        jcs_mx(10,j,i)   = jcs(jcs_mx_i(2,j,i),10,j,i);
+        jcs_mx_i(10,j,i) = jcs_mx_i(2,j,i);
+        jcs_mx(11,j,i)   = jcs(jcs_mx_i(3,j,i),11,j,i);
+        jcs_mx_i(11,j,i) = jcs_mx_i(3,j,i);
+
+        % extract the max values and their indices... 12=B_talocrural, 13=B_subtalar
+        %[jcs_mx(12,j,i),jcs_mx_i(12,j,i)] = max(jcs(:,12,j,i));
+        %[jcs_mx(13,j,i),jcs_mx_i(13,j,i)] = max(jcs(:,13,j,i));
+        % extract the value of the moments corresponding to the instant of peak angle
+        jcs_mx(12,j,i)   = jcs(atm_mx_i(1,j,i),12,j,i);
+        jcs_mx_i(12,j,i) = atm_mx_i(1,j,i);
+        jcs_mx(13,j,i)   = jcs(atm_mx_i(2,j,i),13,j,i);
+        jcs_mx_i(13,j,i) = atm_mx_i(2,j,i);
+
+        % extract the max values and their indices... 14=B_JCS_dfx, 15=B_JCS_inv, 16=B_JCS_int
+        %[jcs_mx(14,j,i),jcs_mx_i(14,j,i)] = max(jcs(:,14,j,i));
+        %[jcs_mx(15,j,i),jcs_mx_i(15,j,i)] = max(jcs(:,15,j,i));
+        %[jcs_mx(16,j,i),jcs_mx_i(16,j,i)] = max(jcs(:,16,j,i));
+        % extract the value of the moments corresponding to the instant of peak angle
+        jcs_mx(14,j,i)   = jcs(jcs_mx_i(1,j,i),14,j,i);
+        jcs_mx_i(14,j,i) = jcs_mx_i(1,j,i);
+        jcs_mx(15,j,i)   = jcs(jcs_mx_i(2,j,i),15,j,i);
+        jcs_mx_i(15,j,i) = jcs_mx_i(2,j,i);
+        jcs_mx(16,j,i)   = jcs(jcs_mx_i(3,j,i),16,j,i);
+        jcs_mx_i(16,j,i) = jcs_mx_i(3,j,i);
 
     end
     
@@ -261,32 +288,32 @@ for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
     figure;subplot(3,4,1);
     for j = 1:jmax
         % plot q1 angle
-        plot(atm(:,1,j,i),'LineWidth',0.4);hold on;
-        plot(atm_mx_i(1,j,i),atm_mx(1,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
+        plot(atm(:,1,j,i),'LineWidth',0.4,'Color',[1 1 1]*0.7);hold on;
+        plot(atm_mx_i(1,j,i),atm_mx(1,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
     end
     subplot(3,4,5);
     for j = 1:jmax
         % plot q2 angle
-        plot(atm(:,2,j,i),'LineWidth',0.4);hold on;
-        plot(atm_mx_i(2,j,i),atm_mx(2,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
+        plot(atm(:,2,j,i),'LineWidth',0.4,'Color',[1 1 1]*0.7);hold on;
+        plot(atm_mx_i(2,j,i),atm_mx(2,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
     end
     subplot(3,4,2);
     for j = 1:jmax
         % plot dorsiflexion angle
-        plot(jcs(:,1,j,i),'LineWidth',0.4);hold on;
-        plot(jcs_mx_i(1,j,i),jcs_mx(1,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
+        plot(jcs(:,1,j,i),'LineWidth',0.4,'Color',[1 1 1]*0.7);hold on;
+        plot(jcs_mx_i(1,j,i),jcs_mx(1,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
     end
     subplot(3,4,6);
     for j = 1:jmax
         % plot inversion angle
-        plot(jcs(:,2,j,i),'LineWidth',0.4);hold on;
-        plot(jcs_mx_i(2,j,i),jcs_mx(2,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
+        plot(jcs(:,2,j,i),'LineWidth',0.4,'Color',[1 1 1]*0.7);hold on;
+        plot(jcs_mx_i(2,j,i),jcs_mx(2,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
     end
     subplot(3,4,10);
     for j = 1:jmax
         % plot internal rotation angle
-        plot(jcs(:,3,j,i),'LineWidth',0.4);hold on;
-        plot(jcs_mx_i(3,j,i),jcs_mx(3,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
+        plot(jcs(:,3,j,i),'LineWidth',0.4,'Color',[1 1 1]*0.7);hold on;
+        plot(jcs_mx_i(3,j,i),jcs_mx(3,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
     end
     %
     % plot the joint angular velocities for visualization
@@ -294,41 +321,41 @@ for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
     subplot(3,4,3);
     for j = 1:jmax
         % plot q1 angle
-        plot(atm(:,3,j,i),'LineWidth',0.4);hold on;
-        plot(atm_mx_i(3,j,i),atm_mx(3,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
+        plot(atm(:,3,j,i),'LineWidth',0.4,'Color',[1 1 1]*0.7);hold on;
+        plot(atm_mx_i(3,j,i),atm_mx(3,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
     end
     subplot(3,4,7);
     for j = 1:jmax
         % plot q2 angle
-        plot(atm(:,4,j,i),'LineWidth',0.4);hold on;
-        plot(atm_mx_i(4,j,i),atm_mx(4,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
+        plot(atm(:,4,j,i),'LineWidth',0.4,'Color',[1 1 1]*0.7);hold on;
+        plot(atm_mx_i(4,j,i),atm_mx(4,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
     end
     subplot(3,4,4);
     for j = 1:jmax
         % plot dorsiflexion angular velocity
-        plot(jcs(:,4,j,i),'LineWidth',0.4);hold on;
-        plot(jcs_mx_i(4,j,i),jcs_mx(4,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
+        plot(jcs(:,4,j,i),'LineWidth',0.4,'Color',[1 1 1]*0.7);hold on;
+        plot(jcs_mx_i(4,j,i),jcs_mx(4,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
     end
     subplot(3,4,8);
     for j = 1:jmax
         % plot inversion angular velocity
-        plot(jcs(:,5,j,i),'LineWidth',0.4);hold on;
-        plot(jcs_mx_i(5,j,i),jcs_mx(5,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
+        plot(jcs(:,5,j,i),'LineWidth',0.4,'Color',[1 1 1]*0.7);hold on;
+        plot(jcs_mx_i(5,j,i),jcs_mx(5,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
     end
     subplot(3,4,12);
     for j = 1:jmax
         % plot internal rotation angular velocity
-        plot(jcs(:,6,j,i),'LineWidth',0.4);hold on;
-        plot(jcs_mx_i(6,j,i),jcs_mx(6,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
+        plot(jcs(:,6,j,i),'LineWidth',0.4,'Color',[1 1 1]*0.7);hold on;
+        plot(jcs_mx_i(6,j,i),jcs_mx(6,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
     end
-    subplot(3,4,1);title({['STUDY: ',STUDY{i}];'ATM angles (top -> bot: q1, q2)'});ylabel('degrees');
+    subplot(3,4,1);title({['STUDY: ',STUDY{i}],'ATM angles (top -> bot: q1, q2)'});ylabel('degrees');
     subplot(3,4,5);xlabel('Solution increment (0-150)');ylabel('degrees');
-    subplot(3,4,2);title({['STUDY: ',STUDY{i}];'JCS angles (top -> bot: dfx, inv, int)'});ylabel('degrees');
+    subplot(3,4,2);title({['STUDY: ',STUDY{i}],'JCS angles (top -> bot: dfx, inv, int)'});ylabel('degrees');
     subplot(3,4,6);ylabel('degrees');
     subplot(3,4,10);xlabel('Solution increment (0-150)');ylabel('degrees');
-    subplot(3,4,3);title({['STUDY: ',STUDY{i}];'ATM velocities (top -> bot: q1\_dot, q2\_dot)'});ylabel('degrees/sec');
+    subplot(3,4,3);title({['STUDY: ',STUDY{i}],'ATM velocities (top -> bot: q1\_dot, q2\_dot)'});ylabel('degrees/sec');
     subplot(3,4,7);xlabel('Solution increment (0-150)');ylabel('degrees/sec');
-    subplot(3,4,4);title({['STUDY: ',STUDY{i}];'JCS ang vel (top -> bot: dfx\_dot, inv\_dot, int\_dot)'});ylabel('degrees/sec');
+    subplot(3,4,4);title({['STUDY: ',STUDY{i}],'JCS ang vel (top -> bot: dfx\_dot, inv\_dot, int\_dot)'});ylabel('degrees/sec');
     subplot(3,4,8);ylabel('degrees/sec');
     subplot(3,4,12);xlabel('Solution increment (0-150)');ylabel('degrees/sec');
     
@@ -338,18 +365,22 @@ for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
     figure;subplot(3,2,1);
     for j = 1:jmax
         % plot talocrural anatomical moment
-        plot(jcs(:,7,j,i),'LineWidth',0.4);hold on;
-        plot(jcs_mx_i(7,j,i),jcs_mx(7,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
-        plot(jcs(:,12,j,i),'--','LineWidth',0.4);hold on;
-        plot(jcs_mx_i(12,j,i),jcs_mx(12,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
+        plot(jcs(:,7,j,i),'LineWidth',0.4,'Color',[1 1 1]*0.7);hold on;
+        plot(jcs_mx_i(7,j,i),jcs_mx(7,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
+        if sum(jcs(:,12,j,i)) ~= 0
+            plot(jcs(:,12,j,i),'--','LineWidth',0.4,'Color',[1 1 1]*0.3);hold on;
+            plot(jcs_mx_i(12,j,i),jcs_mx(12,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
+        end
     end
     subplot(3,2,3);
     for j = 1:jmax
         % plot subtalar anatomical moment
-        plot(jcs(:,8,j,i),'LineWidth',0.4);hold on;
-        plot(jcs_mx_i(8,j,i),jcs_mx(8,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
-        plot(jcs(:,13,j,i),'--','LineWidth',0.4);hold on;
-        plot(jcs_mx_i(13,j,i),jcs_mx(13,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
+        plot(jcs(:,8,j,i),'LineWidth',0.4,'Color',[1 1 1]*0.7);hold on;
+        plot(jcs_mx_i(8,j,i),jcs_mx(8,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
+        if sum(jcs(:,13,j,i)) ~= 0
+            plot(jcs(:,13,j,i),'--','LineWidth',0.4,'Color',[1 1 1]*0.3);hold on;
+            plot(jcs_mx_i(13,j,i),jcs_mx(13,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
+        end
     end
     %
     % plot the JCS moments for visualization
@@ -357,46 +388,119 @@ for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
     subplot(3,2,2);
     for j = 1:jmax
         % plot JCS dorsiflexion moment
-        plot(jcs(:,9,j,i),'LineWidth',0.4);hold on;
-        plot(jcs_mx_i(9,j,i),jcs_mx(9,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
-        plot(jcs(:,14,j,i),'--','LineWidth',0.4);hold on;
-        plot(jcs_mx_i(14,j,i),jcs_mx(14,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
+        plot(jcs(:,9,j,i),'LineWidth',0.4,'Color',[1 1 1]*0.7);hold on;
+        plot(jcs_mx_i(9,j,i),jcs_mx(9,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
+        if sum(jcs(:,14,j,i)) ~= 0
+            plot(jcs(:,14,j,i),'--','LineWidth',0.4,'Color',[1 1 1]*0.3);hold on;
+            plot(jcs_mx_i(14,j,i),jcs_mx(14,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
+        end
     end
     subplot(3,2,4);
     for j = 1:jmax
         % plot JCS inversion moment
-        plot(jcs(:,10,j,i),'LineWidth',0.4);hold on;
-        plot(jcs_mx_i(10,j,i),jcs_mx(10,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
-        plot(jcs(:,15,j,i),'--','LineWidth',0.4);hold on;
-        plot(jcs_mx_i(15,j,i),jcs_mx(15,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
+        plot(jcs(:,10,j,i),'LineWidth',0.4,'Color',[1 1 1]*0.7);hold on;
+        plot(jcs_mx_i(10,j,i),jcs_mx(10,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
+        if sum(jcs(:,15,j,i)) ~= 0
+            plot(jcs(:,15,j,i),'--','LineWidth',0.4,'Color',[1 1 1]*0.3);hold on;
+            plot(jcs_mx_i(15,j,i),jcs_mx(15,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
+        end
     end
     subplot(3,2,6);
     for j = 1:jmax
         % plot JCS internal moment
-        plot(jcs(:,11,j,i),'LineWidth',0.4);hold on;
-        plot(jcs_mx_i(11,j,i),jcs_mx(11,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
-        plot(jcs(:,16,j,i),'--','LineWidth',0.4);hold on;
-        plot(jcs_mx_i(16,j,i),jcs_mx(16,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
+        plot(jcs(:,11,j,i),'LineWidth',0.4,'Color',[1 1 1]*0.7);hold on;
+        plot(jcs_mx_i(11,j,i),jcs_mx(11,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
+        if sum(jcs(:,16,j,i)) ~= 0
+            plot(jcs(:,16,j,i),'--','LineWidth',0.4,'Color',[1 1 1]*0.3);hold on;
+            plot(jcs_mx_i(16,j,i),jcs_mx(16,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
+        end
     end
-    subplot(3,2,1);title({['STUDY: ',STUDY{i}];'Anatomical Moments (top -> bot: TC, ST)'});ylabel('N.m');
+    subplot(3,2,1);title({['STUDY: ',STUDY{i}],'Anatomical Moments (top -> bot: TC, ST)'});ylabel('N.m');
     subplot(3,2,3);xlabel('Solution increment (0-150)');ylabel('N.m');
-    subplot(3,2,2);title({['STUDY: ',STUDY{i}];'JCS Moments (top -> bot: M\_dfx, M\_inv, M\_int)'});ylabel('N.m');
+    subplot(3,2,2);title({['STUDY: ',STUDY{i}],'JCS Moments (top -> bot: M\_dfx, M\_inv, M\_int)'});ylabel('N.m');
     subplot(3,2,4);ylabel('N.m');
     subplot(3,2,6);xlabel('Solution increment (0-150)');ylabel('N.m');
-
+   
 end
 toc;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% write the output in the order needed for Table in the manuscript
+fid = fopen('table_output.txt','w');
+% across 1001 trials... mean and stdev are then the only two scalar outcomes retained
+% store outcomes in a 3D array out(r,c,p) where...
+% r = (1-6) dfx, inv, int, dfx_dot, inv_dot, int_dot
+%     (7-11) M_talocrural, M_subtalar, M_JCS_dfx, M_JCS_inv, M_JCS_int
+%     (12-16) B_talocrural, B_subtalar, B_JCS_dfx, B_JCS_inv, B_JCS_int
+%     (17-20) q1, q2, q1_dot, q2_dot
+% c = 1 to 2 for mean and stdev
+% p = 1 to 6 for STUDY number
+% out = zeros(20,2,6);
+%
+% subtalar angles
+fprintf(fid,'Subtalar angles, velocities, moments (anatomy, brace)... cols = %s\n',cell2mat(STUDY));
+fprintf(fid,'%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\n',out(18,:,:));
+% subtalar velocities
+fprintf(fid,'%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\n',out(20,:,:));
+% subtalar moments - anatomy
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n',out(8,:,:));
+% subtalar moments - brace
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n\n',out(13,:,:));
+
+% talocrural angles
+fprintf(fid,'Talocrural angles, velocities, moments (anatomy, brace)... cols = %s\n',cell2mat(STUDY));
+fprintf(fid,'%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\n',out(17,:,:));
+% talocrural velocities
+fprintf(fid,'%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\n',out(19,:,:));
+% talocrural moments - anatomy
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n',out(7,:,:));
+% talocrural moments - brace
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n\n',out(12,:,:));
+
+% JCS dfx angles
+fprintf(fid,'JCS dorsiflexion(+) angles, velocities, moments (anatomy, brace)... cols = %s\n',cell2mat(STUDY));
+fprintf(fid,'%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\n',out(1,:,:));
+% JCS dfx velocities
+fprintf(fid,'%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\n',out(4,:,:));
+% JCS dfx moments - anatomy
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n',out(9,:,:));
+% JCS dfx moments - brace
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n\n',out(14,:,:));
+
+% JCS inv angles
+fprintf(fid,'JCS inversion(+) angles, velocities, moments (anatomy, brace)... cols = %s\n',cell2mat(STUDY));
+fprintf(fid,'%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\n',out(2,:,:));
+% JCS inv velocities
+fprintf(fid,'%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\n',out(5,:,:));
+% JCS inv moments - anatomy
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n',out(10,:,:));
+% JCS inv moments - brace
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n\n',out(15,:,:));
+
+% JCS int angles
+fprintf(fid,'JCS internal(+) angles, velocities, moments (anatomy, brace)... cols = %s\n',cell2mat(STUDY));
+fprintf(fid,'%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\n',out(3,:,:));
+% JCS int velocities
+fprintf(fid,'%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\t%.0f±%.0f\n',out(6,:,:));
+% JCS int moments - anatomy
+fprintf(fid,'%.0f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n',out(11,:,:));
+% JCS int moments - brace
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n\n',out(16,:,:));
+
+fclose(fid);
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % supporting functions
 %
 function [val,index] = minmax(v)
 % the purpose of this function is to return the upper or lower bound of vector
-% v subject to the constraint that a lower bound must not be the first data point
+% v subject to the constraint that the first data point should never the extreme value of interest
 [hi,ihi] = max(v); [lo,ilo] = min(v);
-if (abs(lo)>abs(hi) && ilo>1), val = lo; index = ilo;
-else, val = hi; index = ihi; end
+if (ihi<=1), val = lo; index = ilo;
+elseif (ilo<=1), val = hi; index = ihi;
+elseif (abs(lo)>abs(hi)), val = lo; index = ilo;
+else, val = hi; index = ihi;
+end
 end
 
 function [flx,lat,axl] = helical2Cardan(alphax,alphay,alphaz)

@@ -1,4 +1,4 @@
-clear all
+% clear all
 % close all
 
 %%% Baseline Defaults: these reproduce level landing simulation of (DeMers et al 2017)
@@ -19,8 +19,8 @@ hi  =    0.300   ;
 ei  =    50000000; 
 di  =    5.0     ; 
 fi  =    0.000   ; 
-ci  =    0.000   ; 
-rgi =    0.000   ; 
+ci  =    0.500   ; 
+rgi =    5.000   ; 
 j1i =  -34.000   ; 
 j2i =    0.000   ;
 m1i =    0.000   ;  
