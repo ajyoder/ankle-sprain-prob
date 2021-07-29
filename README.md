@@ -1,13 +1,5 @@
 # anklesprain
 
-This project extends on models developed by:
-
-DeMers MS, Hicks JL, Delp SL. Preparatory co-activation of the ankle muscles may prevent ankle inversion injuries. J Biomech. 2017;52(2017):17-23. 
-
-doi:10.1016/j.jbiomech.2016.11.002
-
-https://simtk.org/projects/ankle-sprains
-
 Installation:
 
 1) Download and install OpenSim v3.3
@@ -26,3 +18,13 @@ Installation:
    Which can be confirmed in C:\OpenSim 3.3\sdk\buildinfo.txt
 
 4) Run "osimExecute." 
+
+Acknowledgments:
+
+This project extends on OpenSim models and muscle controllers of:
+
+DeMers MS, Hicks JL, Delp SL. Preparatory co-activation of the ankle muscles may prevent ankle inversion injuries. J Biomech. 2017;52(2017):17-23. 
+
+doi:10.1016/j.jbiomech.2016.11.002
+
+https://simtk.org/projects/ankle-sprains
