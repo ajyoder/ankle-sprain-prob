@@ -18,10 +18,10 @@ addpath(genpath('.\common\'))
 %%  Script inputs & options  
 o1=[]; % response levels to extract (leave empty for none)
 p1=[.05 .5 .95]; % prob levels to extract (leave empty for none)
-trial=31; % study title for display
+trial=30; % study title for display
 XLABEL = 'Subtalar Supination (Inv, Deg)'; %name of reponse being analyzed
 PLOT_CORRELATION_SCATTER = 0;  % XY scatter plots corresponding to Tcorr results table
-COMPUTE_SENSITIVITIES = 0;
+COMPUTE_SENSITIVITIES = 1;
 
 %%%%%% Note: Manual variable definition required for (name, vu=mean, vs=sdev) 
 %%%%%% No easy way to parse these from NESSUS .dat..... but they are needed
@@ -195,8 +195,9 @@ s2 = size(Tzal,1);
 
 bM = []; bS = [];
 varsPLOT={'hi','ei','di','ci','rgi','m1i','j1i','j2i','fi','bi'};
-namesPLOT={'DH','GC','GD','MC','MR','MS','AP','AI','SA','SB'};
-clr=linspecer(numel(varsPLOT));
+namesPLOT={'DROP HEIGHT','GROUND CONTACT','GROUND DISSIPATION','MUSCLE COACTIVATION','MUSCLE REFLEX','MUSCLE STRENGTH','TALOCRURAL ANGLE (PF.)','SUBTALAR ANGLE (SUP.)','STIFFNESS - ANATOMY','STIFFNESS - BRACE'};
+STYLE={'-','-.','--','-','-.','--','-','-.','--','-'};
+COLOR=linspecer(numel(varsPLOT));
 for vi=1:numel(varsPLOT)  
     if any(contains(Tzal.Properties.VariableNames,[varsPLOT{vi} '_su']))
     su = Tzal{:,[varsPLOT{vi} '_su']};
@@ -205,8 +206,8 @@ for vi=1:numel(varsPLOT)
     su = nan(size(z));
     sr = nan(size(z));    
     end
-    hp1(vi)=plot(hax1,z,su,'linestyle','-','color',clr(vi,:),'tag',namesPLOT{vi},'linewidth',2,'displayname',namesPLOT{vi});
-    hp2(vi)=plot(hax2,z,sr,'linestyle','-','color',clr(vi,:),'tag',namesPLOT{vi},'linewidth',2,'displayname',namesPLOT{vi});
+    hp1(vi)=plot(hax1,z,su,'linestyle',STYLE{vi},'color',COLOR(vi,:),'tag',namesPLOT{vi},'linewidth',1,'displayname',namesPLOT{vi});
+    hp2(vi)=plot(hax2,z,sr,'linestyle',STYLE{vi},'color',COLOR(vi,:),'tag',namesPLOT{vi},'linewidth',1,'displayname',namesPLOT{vi});
     suM=mean(su(s1:s2));
     srM=mean(sr(s1:s2));
     suS=std(su(s1:s2));   
@@ -229,7 +230,7 @@ YLM2=get(hax2,'ylim');
 plot(hax2,[O O],[YLM2(1) YLM2(2)],'k:','handlevisibility','off')
 end
 
-%% Bar plot
+% Bar plot
 hbar = bar(hax3,bM);
 
 ngroups = size(bM, 1);
@@ -240,10 +241,10 @@ for i = 1:nbars
     heb = errorbar(hax3, xb', bM(:,i), bS(:,i), 'k','linestyle','none','capsize',0,'linewidth',2);
 end
 
-set([hax1,hax2,hax3],'Fontsize',10,'fontweight','bold')
+set([hax1,hax2,hax3],'Fontsize',12,'fontweight','bold')
 ylabel(hax1,name)
-title(hax1,'Sensitivity (Input Mean)')
-title(hax2,'Sensitivity (Input Variance)')
+title(hax1,'Sensitivity to Input Mean')
+title(hax2,'Sensitivity to Input Variance')
 legend(hbar,{'S_{\mu}','S_{\sigma}'})
 % set([hax1,hax2],'ylim',[-4.5 4.5])
 xlabel(hax1,XLABEL)
@@ -254,5 +255,4 @@ title(hax3,'Probabilistic Sensitivity (Mean, 1SD)')
 legend(hbar,{'S_{\mu}','S_{\sigma}'})
 
 end
-
 

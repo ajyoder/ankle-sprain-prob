@@ -1,7 +1,8 @@
 clearvars;close all;clc;
 
 % the folder names for all STUDYs in the prob project
-STUDY = {'MCv26c','MCv27c','MCv28c','MCv29c','MCv30c','MCv31c'};
+% STUDY = {'MCv26c','MCv27c','MCv28c','MCv29c','MCv30c','MCv31c'};
+STUDY = {'MCv26c'};
 %STUDY = {'Trial1','Trial2','Trial3'};
 
 row = 1; % where do the data start in the CSV output file... indexed from 0, row 1 is 2nd row
@@ -42,7 +43,7 @@ out = zeros(20,2,6);
 
 tic;
 
-for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
+for i = 1:numel(STUDY)   % iterate on studies listed above in STUDY
     for j = 1:jmax       % iterate on F/###### trial folder
         
         clc; disp(['Working on STUDY ',STUDY{i},' trial... ',sprintf('%06d',j-1)]);
@@ -291,30 +292,35 @@ for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
         plot(atm(:,1,j,i),'LineWidth',0.4,'Color',[1 1 1]*0.7);hold on;
         plot(atm_mx_i(1,j,i),atm_mx(1,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
     end
+    uistack(findall(gca,'Color',[184/255 0 0]),'top');
     subplot(3,4,5);
     for j = 1:jmax
         % plot q2 angle
         plot(atm(:,2,j,i),'LineWidth',0.4,'Color',[1 1 1]*0.7);hold on;
         plot(atm_mx_i(2,j,i),atm_mx(2,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
     end
+    uistack(findall(gca,'Color',[184/255 0 0]),'top');
     subplot(3,4,2);
     for j = 1:jmax
         % plot dorsiflexion angle
         plot(jcs(:,1,j,i),'LineWidth',0.4,'Color',[1 1 1]*0.7);hold on;
         plot(jcs_mx_i(1,j,i),jcs_mx(1,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
     end
+    uistack(findall(gca,'Color',[184/255 0 0]),'top');
     subplot(3,4,6);
     for j = 1:jmax
         % plot inversion angle
         plot(jcs(:,2,j,i),'LineWidth',0.4,'Color',[1 1 1]*0.7);hold on;
         plot(jcs_mx_i(2,j,i),jcs_mx(2,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
     end
+    uistack(findall(gca,'Color',[184/255 0 0]),'top');
     subplot(3,4,10);
     for j = 1:jmax
         % plot internal rotation angle
         plot(jcs(:,3,j,i),'LineWidth',0.4,'Color',[1 1 1]*0.7);hold on;
         plot(jcs_mx_i(3,j,i),jcs_mx(3,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
     end
+    uistack(findall(gca,'Color',[184/255 0 0]),'top');
     %
     % plot the joint angular velocities for visualization
     %
@@ -324,30 +330,35 @@ for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
         plot(atm(:,3,j,i),'LineWidth',0.4,'Color',[1 1 1]*0.7);hold on;
         plot(atm_mx_i(3,j,i),atm_mx(3,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
     end
+    uistack(findall(gca,'Color',[184/255 0 0]),'top');
     subplot(3,4,7);
     for j = 1:jmax
         % plot q2 angle
         plot(atm(:,4,j,i),'LineWidth',0.4,'Color',[1 1 1]*0.7);hold on;
         plot(atm_mx_i(4,j,i),atm_mx(4,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
     end
+    uistack(findall(gca,'Color',[184/255 0 0]),'top');
     subplot(3,4,4);
     for j = 1:jmax
         % plot dorsiflexion angular velocity
         plot(jcs(:,4,j,i),'LineWidth',0.4,'Color',[1 1 1]*0.7);hold on;
         plot(jcs_mx_i(4,j,i),jcs_mx(4,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
     end
+    uistack(findall(gca,'Color',[184/255 0 0]),'top');
     subplot(3,4,8);
     for j = 1:jmax
         % plot inversion angular velocity
         plot(jcs(:,5,j,i),'LineWidth',0.4,'Color',[1 1 1]*0.7);hold on;
         plot(jcs_mx_i(5,j,i),jcs_mx(5,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
     end
+    uistack(findall(gca,'Color',[184/255 0 0]),'top');
     subplot(3,4,12);
     for j = 1:jmax
         % plot internal rotation angular velocity
         plot(jcs(:,6,j,i),'LineWidth',0.4,'Color',[1 1 1]*0.7);hold on;
         plot(jcs_mx_i(6,j,i),jcs_mx(6,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
     end
+    uistack(findall(gca,'Color',[184/255 0 0]),'top');
     subplot(3,4,1);title({['STUDY: ',STUDY{i}],'ATM angles (top -> bot: q1, q2)'});ylabel('degrees');
     subplot(3,4,5);xlabel('Solution increment (0-150)');ylabel('degrees');
     subplot(3,4,2);title({['STUDY: ',STUDY{i}],'JCS angles (top -> bot: dfx, inv, int)'});ylabel('degrees');
@@ -372,6 +383,7 @@ for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
             plot(jcs_mx_i(12,j,i),jcs_mx(12,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
         end
     end
+    uistack(findall(gca,'Color',[184/255 0 0]),'top');
     subplot(3,2,3);
     for j = 1:jmax
         % plot subtalar anatomical moment
@@ -382,6 +394,7 @@ for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
             plot(jcs_mx_i(13,j,i),jcs_mx(13,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
         end
     end
+    uistack(findall(gca,'Color',[184/255 0 0]),'top');
     %
     % plot the JCS moments for visualization
     %
@@ -395,6 +408,7 @@ for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
             plot(jcs_mx_i(14,j,i),jcs_mx(14,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
         end
     end
+    uistack(findall(gca,'Color',[184/255 0 0]),'top');
     subplot(3,2,4);
     for j = 1:jmax
         % plot JCS inversion moment
@@ -405,6 +419,7 @@ for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
             plot(jcs_mx_i(15,j,i),jcs_mx(15,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
         end
     end
+    uistack(findall(gca,'Color',[184/255 0 0]),'top');
     subplot(3,2,6);
     for j = 1:jmax
         % plot JCS internal moment
@@ -415,6 +430,7 @@ for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
             plot(jcs_mx_i(16,j,i),jcs_mx(16,j,i),'.','MarkerSize',12,'Color',[184/255 0 0]);
         end
     end
+    uistack(findall(gca,'Color',[184/255 0 0]),'top');
     subplot(3,2,1);title({['STUDY: ',STUDY{i}],'Anatomical Moments (top -> bot: TC, ST)'});ylabel('N.m');
     subplot(3,2,3);xlabel('Solution increment (0-150)');ylabel('N.m');
     subplot(3,2,2);title({['STUDY: ',STUDY{i}],'JCS Moments (top -> bot: M\_dfx, M\_inv, M\_int)'});ylabel('N.m');
