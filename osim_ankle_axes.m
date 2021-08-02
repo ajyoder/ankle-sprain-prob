@@ -26,20 +26,20 @@ clc;
 %%%% Note: moments are between the calc and tibia, borne by the passive anatomy bushing ONLY, 
 %%%% in the tibia base reference frame. Torque borne by the brace bushing
 %%%% in parallel (when present) is also available, but wasnt logged in last run of MC's
-TT=readtable('nessusOut2.csv');
-TT.time = seconds(str2double(strrep(TT.time,' sec','')));
-TT = table2timetable(TT);
-q1 = TT{:,'ankle_angle_r'}; %ankle
-q2 = TT{:,'subtalar_angle_r'}; %subtalar
+% TT=readtable('nessusOut2.csv');
+% TT.time = seconds(str2double(strrep(TT.time,' sec','')));
+% TT = table2timetable(TT);
+% q1 = TT{:,'ankle_angle_r'}; %ankle
+% q2 = TT{:,'subtalar_angle_r'}; %subtalar
 
 %%%% Analyze instant of max inversion, for now
-[submax,isubmax]=max(q2);
-tib_angle = q1(isubmax); %ankle
-sub_angle = q2(isubmax); %subtalar
+% [submax,isubmax]=max(q2);
+% tib_angle = q1(isubmax); %ankle
+% sub_angle = q2(isubmax); %subtalar
 
 %%%% For verification:
-% tib_angle = -34; %ankle (DF+)
-% sub_angle = 40; %subtalar (INV+)
+tib_angle = 0.1; %ankle (DF+)
+sub_angle = 41; %subtalar (INV+)
 
 %% FIXED INPUTS
 tibax = [-0.10501355 -0.17402245 0.97912632];
@@ -85,9 +85,6 @@ fprintf(1,'<TIB-CALCANEUS> ******************, DF(+)/PF = %6.1f, INV(+)/EV = %6.
 %% (3) Angular Velocity 
 %%%% Could be most efficient to use Corke's rtb toolbox
 
-% Joint velocities (about oblique helical axis)
-q1d=[NaN; diff(q1)];
-q2d=[NaN; diff(q2)];
 
 % Map joint velocities (q1d,q2d) to omega_ZXY (calcaneus rel. tibia), using above rotation matrices
 %%%% https://robotacademy.net.au/lesson/the-analytic-jacobian/
