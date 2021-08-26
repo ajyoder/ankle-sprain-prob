@@ -38,8 +38,8 @@ clc;
 % sub_angle = q2(isubmax); %subtalar
 
 %%%% For verification:
-tib_angle = 0.1; %ankle (DF+)
-sub_angle = 41; %subtalar (INV+)
+tib_angle = 20; %ankle (DF+)
+sub_angle = 52; %subtalar (INV+)
 
 %% FIXED INPUTS
 tibax = [-0.10501355 -0.17402245 0.97912632];
