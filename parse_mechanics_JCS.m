@@ -1,7 +1,21 @@
+%%%%% This script reads outputs from Monte Carlo studies,
+%%%%% specifically the biomechanical time trajectories contained in
+%%%%% nessusOut2.csv, and extracts peak values, takes ensemble mean(sd)
+%%%%% across all trials for reporting
+%%%%%
+%%%%% Internal anatomic joint angle subtalar and talocrural mechanics are
+%%%%% also resolved to an ISB-recommended Joint Coordinate System (JCS)
+%%%%% for calcaneus relative to tibia
+%%%%%
+%%%%%
+
 clearvars;close all;clc;
 
+%location of unzipped --> "MC_AMV_SimulationResults.zip" with subfolders below
+directory_results = 'C:\nessus\ankle-sprain\'; 
+
 % the folder names for all STUDYs in the prob project
-STUDY = {'MCv26c','MCv27c','MCv28c','MCv29c','MCv30c','MCv31c'};
+STUDY = {'MCv26c_Study2','MCv27c_Study3','MCv28c_Study4','MCv29c_Study5','MCv30c_Study6','MCv31c_Study1'};
 
 row = 1; % where do the data start in the CSV output file... indexed from 0, row 1 is 2nd row
 col = 7; % where do the data start in the CSV output file... indexed from 0, col 7 is 8th col
@@ -14,14 +28,15 @@ jmax = 1001; % this is the total number of trials in each STUDY... nominally, jm
 % c = 1 to 11 corresponding to...
 %     (1-3) dorsiflexion, inversion, and internal rotation (all positive rotations)
 %     (4-6) angular velocities of dorsiflexion, inversion, and internal rotation
-%     (7-11) moment magnitude around talocrural, subtalar, JCS_dfx, JCS_inv, JCS_int 
+%     (7-11) anatmoicala moment magnitude around talocrural, subtalar, JCS_dfx, JCS_inv, JCS_int 
+%     (12-16) brace moment magnitude around talocrural, subtalar, JCS_dfx, JCS_inv, JCS_int 
 % p = trial number 1-1001 corresponding to trials 000000 to 001000
 % s = 1 to 6 for STUDY number
-jcs = zeros(151,11,jmax,6);
+jcs = zeros(151,16,jmax,6);
 atm = zeros(151,4,jmax,6); % similar array for anatomical q1, q2, q1_dot, q2_dot
 
 % preallocate similar array contains only max value of each curve over the "r" time incs listed above
-jcs_mx = zeros(11,jmax,6);  % this array stores the max value of each curve
+jcs_mx = zeros(16,jmax,6);  % this array stores the max value of each curve
 atm_mx = zeros(4,jmax,6);   % similar array for the 4 anatomical variables
 jcs_mx_i = jcs_mx;          % this identical array stores the vector index of each max value for plotting
 atm_mx_i = atm_mx;          % similar array for the 4 anatomical variables
@@ -30,21 +45,22 @@ atm_mx_i = atm_mx;          % similar array for the 4 anatomical variables
 % first, extract max value of each curve, then compute mean and stdev
 % across 1001 trials... mean and stdev are then the only two scalar outcomes retained
 % store outcomes in a 3D array out(r,c,p) where...
-% r = 1 to 8 rows: dfx, inv, int, dfx_dot, inv_dot, int_dot, M_talocrural, M_subtalar
-%     9 to 15 rows: M_JCS_dfx, M_JCS_inv, M_JCS_int, q1, q2, q1_dot, q2_dot
+% r = (1-6) dfx, inv, int, dfx_dot, inv_dot, int_dot
+%     (7-11) M_talocrural, M_subtalar, M_JCS_dfx, M_JCS_inv, M_JCS_int
+%     (12-16) B_talocrural, B_subtalar, B_JCS_dfx, B_JCS_inv, B_JCS_int
+%     (17-20) q1, q2, q1_dot, q2_dot
 % c = 1 to 2 for mean and stdev
 % p = 1 to 6 for STUDY number
-out = zeros(15,2,6);
+out = zeros(20,2,6);
 
 tic;
-
 for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
     for j = 1:jmax       % iterate on F/###### trial folder
         
         clc; disp(['Working on STUDY ',STUDY{i},' trial... ',sprintf('%06d',j-1)]);
         
         % write the filename of the output file of interest
-        path = ['C:/nessus/ankle-sprain/' STUDY{i},'/F/',sprintf('%06d',j-1),'/nessusOut2.csv'];
+        path = [directory_results '/' STUDY{i},'/F/',sprintf('%06d',j-1),'/nessusOut2.csv'];
         
         % read the columns of output data for kinematics/kinetics
         % cols in input file, indexed from 0 (NOT from 1)...
@@ -52,22 +68,24 @@ for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
         % 13=q1(talocrural rot), 14=q2 (subtalar rot), 15=q1_dot, 16=q2_dot
         % 17,18,19=tib X,Y,Z global coordinates of COM
         % 20,21,22=tib x,y,z body-fixed rotations for x-y-z sequence
+        % 23,24,25=calcn x,y,z body-fixed rotations for x-y-z sequence
+        % 26,27,28=talus X,Y,Z global coordinates of COM
         d = [dlmread(path,',',[row,col,row+150,col+15])...   % these are cols 7-22
              dlmread(path,',',[row,col+19,row+150,col+24])]; % these are cols 26-31
         
-        ankle_MX  = d(:,1);  % ankle moment // global X component
-        ankle_MY  = d(:,2);  % ankle moment // global Y component
-        ankle_MZ  = d(:,3);  % ankle moment // global Z component
-        brace_MX  = d(:,4);  % brace moment // global X component
-        brace_MY  = d(:,5);  % brace moment // global Y component
-        brace_MZ  = d(:,6);  % brace moment // global Z component
-        tc_angle  = d(:,7);  % talocrural angle // OSim ankle joint axis
-        st_angle  = d(:,8);  % subtalar angle // OSim subtalar joint axis
-        tc_veloc  = d(:,9);  % talocrural joint angular velocity // q1_dot
-        st_veloc  = d(:,10); % subtalar joint angular velocity // q2_dot
-        tibia_r_X = d(:,11); % tibia COM global X coordinate
-        tibia_r_Y = d(:,12); % tibia COM global Y coordinate
-        tibia_r_Z = d(:,13); % tibia COM global Z coordinate
+        ankle_MX  = d(:,1); % ankle moment on tibia COM // global X component
+        ankle_MY  = d(:,2); % ankle moment on tibia COM // global Y component
+        ankle_MZ  = d(:,3); % ankle moment on tibia COM // global Z component
+        brace_MX  = d(:,4); % brace moment on tibia COM // global X component
+        brace_MY  = d(:,5); % brace moment on tibia COM // global Y component
+        brace_MZ  = d(:,6); % brace moment on tibia COM // global Z component
+        tc_angle  = d(:,7);  % talocrural angle in degrees // OSim ankle joint axis
+        st_angle  = d(:,8);  % subtalar angle in degrees // OSim subtalar joint axis
+        tc_veloc  = d(:,9);  % talocrural joint angular velocity in deg/s // q1_dot
+        st_veloc  = d(:,10); % subtalar joint angular velocity in deg/s // q2_dot
+        tibia_r_X = d(:,11); % tibia COM global X coordinate in meters
+        tibia_r_Y = d(:,12); % tibia COM global Y coordinate in meters
+        tibia_r_Z = d(:,13); % tibia COM global Z coordinate in meters
         tibia_x_O = d(:,14); % tibia frame body-fixed x rotation, x-y-z sequence
         tibia_y_O = d(:,15); % tibia frame body-fixed y rotation, x-y-z sequence
         tibia_z_O = d(:,16); % tibia frame body-fixed z rotation, x-y-z sequence     
@@ -78,71 +96,87 @@ for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
         talus_r_Y = d(:,21); % talus COM global Y coordinate
         talus_r_Z = d(:,22); % talus COM global Z coordinate
         
-        % linkage is TIBIA.{ankle-joint}.TALUS.{subtalar-joint}.CALCANEUS
+        % biomechanical linkage is TIBIA.{ankle-joint}.TALUS.{subtalar-joint}.CALCANEUS
         % the ref frame for each body is initially parallel to Global
-        tc_ax = [-0.10501355 -0.17402245 +0.97912632]'; % talocrural axis defined in tibia body frame
-        tibax = [+0.00000000 +0.00000000 +1.00000000]'; % considering JCS motion, talocrural is exactly Z-axis
-        st_ax = [+0.78717961 +0.60474746 -0.12094949]'; % subtalar axis defined in talus body frame
+        tc_ax = [-0.10501355 -0.17402245 +0.97912632]'; % talocrural axis defined in tibia OpenSim body frame
+        st_ax = [+0.78717961 +0.60474746 -0.12094949]'; % subtalar axis defined in talus OpenSim body frame
         
         % for each time increment in a single simulation
         % 1 to 151 for time points 0-150 corresponding to 0.15s with time incs of 0.001
         for k = 1:length(d)
             
+            % find the unit vectors of the JCS frame fixed in the tibia
             % rotation matrices associated with tibia body-fixed Euler angle sequence x-y-z
             Rx = [1 0 0;0 cosd(tibia_x_O(k)) sind(tibia_x_O(k));0 -sind(tibia_x_O(k)) cosd(tibia_x_O(k))];
             Ry = [cosd(tibia_y_O(k)) 0 -sind(tibia_y_O(k));0 1 0;sind(tibia_y_O(k)) 0 cosd(tibia_y_O(k))];
             Rz = [cosd(tibia_z_O(k)) sind(tibia_z_O(k)) 0;-sind(tibia_z_O(k)) cosd(tibia_z_O(k)) 0;0 0 1];
             Rt = Rz*Ry*Rx; % transforms from Global to tibia
-            
             % transform talocrural axis from tibia frame to Global
             TIB_Z = Rt'*tc_ax; % this is the JCS Z-axis for tibia defined in Global
             % tibia long axis defined in Global frame
             TL_AX = unit([tibia_r_X(k) tibia_r_Y(k) tibia_r_Z(k)] - [talus_r_X(k) talus_r_Y(k) talus_r_Z(k)])';
-            % cross product of TL_AX and TC_AX gives JCS X-axis for tibia
+            % cross product of TL_AX and TIB_Z gives JCS X-axis for tibia
             TIB_X = cross(TL_AX,TIB_Z);
             % cross product of TIB_Z and TIB_X gives JCS Y-axis for tibia
             TIB_Y = cross(TIB_Z,TIB_X);
             
+            % find the unit vectors of the JCS frame fixed in the calcaneus
             % rotation matrices associated with calcaneus body-fixed Euler angle sequence x-y-z
             Rx = [1 0 0;0 cosd(calcn_x_O(k)) sind(calcn_x_O(k));0 -sind(calcn_x_O(k)) cosd(calcn_x_O(k))];
             Ry = [cosd(calcn_y_O(k)) 0 -sind(calcn_y_O(k));0 1 0;sind(calcn_y_O(k)) 0 cosd(calcn_y_O(k))];
             Rz = [cosd(calcn_z_O(k)) sind(calcn_z_O(k)) 0;-sind(calcn_z_O(k)) cosd(calcn_z_O(k)) 0;0 0 1];
             Rc = Rz*Ry*Rx; % transforms from Global to calcaneus
-            % the rows of this rotation matrix are the Global components of the calcaneus frame
-            % these are the axes of the JCS frame for the calcaneus expressed in Global components
-            CAL_X = Rc(1,:)';
-            CAL_Y = Rc(2,:)';
-            CAL_Z = Rc(3,:)';
+            % the rows of this rotation matrix are the unit vectors of the calcaneus frame in Global components
+            % these are the axes of the body-fixed JCS frame for the calcaneus expressed in Global components
+            CAL_X = Rc(1,:)'; % use transpose simply to make this a column vector
+            CAL_Y = Rc(2,:)'; % use transpose simply to make this a column vector
+            CAL_Z = Rc(3,:)'; % use transpose simply to make this a column vector
             
-            % JCS angles
-            L   = -unit(cross(CAL_Y,TIB_Z)); % line of nodes
-            dfx = +asind(-dot(L,TIB_Y));     % dorsiflexion about common Z
-            inv = +asind(dot(TIB_Z,CAL_Y));  % inversion about line of nodes
-            int = -asind(dot(L,CAL_Z));      % internal rotation about calcaneus y
+            % compute JCS angles
+            L   = +unit(cross(CAL_Y,TIB_Z)); % line of nodes is common perpendicular y and Z
+            dfx = +asind(dot(L,TIB_Y));      % dorsiflexion about common z/Z // degrees
+            inv = +asind(dot(TIB_Z,CAL_Y));  % inversion about line of nodes L // degrees
+            int = +asind(dot(L,CAL_Z));      % internal rotation about calcaneus y // degrees
             
             % save the JCS angles in the results array
             jcs(k,1,j,i) = dfx; jcs(k,2,j,i) = inv; jcs(k,3,j,i) = int;
             
+            % transform the subtalar axis into global components
             % helical2Cardan() needs something non-zero to work
             if(tc_angle(k)==0),tc_angle(k)=0.001;end
             % subtalar axis fixed in talus rotates around talocrural axis (tc_ax) defined in tibia frame
             alpha = deg2rad(tc_angle(k))*tc_ax; % helical axis rotation of talus relative to tibia
-            [flx,lat,axl] = helical2Cardan(alpha(1),alpha(2),alpha(3)); % this function uses z-x-y sequence
-            Rz = [cos(flx) sin(flx) 0;-sin(flx) cos(flx) 0;0 0 1]; % these angles are all in radians
-            Rx = [1 0 0;0 cos(lat) sin(lat);0 -sin(lat) cos(lat)]; % these angles are all in radians
-            Ry = [cos(axl) 0 -sin(axl);0 1 0;sin(axl) 0 cos(axl)]; % these angles are all in radians
-            Rs = Ry*Rx*Rz; % transforms from tibia to talus... rotation sequence doesn't matter
+            % find the rotation matrix corresponding to the talocrural helical axis rotation
+            [dfx,inv,int] = helical2Cardan(alpha(1),alpha(2),alpha(3)); % this function uses z-x-y sequence
+            Rz = [cos(dfx) sin(dfx) 0;-sin(dfx) cos(dfx) 0;0 0 1]; % these angles are in radians
+            Rx = [1 0 0;0 cos(inv) sin(inv);0 -sin(inv) cos(inv)]; % these angles are in radians
+            Ry = [cos(int) 0 -sin(int);0 1 0;sin(int) 0 cos(int)]; % these angles are in radians
+            Rs = Ry*Rx*Rz; % transforms from tibia to talus... rotation sequence matches helical2Cardan internal code
             ST_AX = Rt'*Rs'*st_ax; % transform subtalar axis from talus to tibia to Global
             
-            % compute JCS angular velocities from q1_dot and q2_dot
-            % dfx_dot = q1_dot ... put this in column 4 of jcs array
-            jcs(k,4,j,i) = tc_veloc(k);
-            % inv_dot = q2_dot*subax(x)/(cosd(int) + sind(int)) ... put this in column 5 of jcs array
-            jcs(k,5,j,i) = st_veloc(k)*st_ax(1)/(cosd(int) + sind(int));
-            % int_dot = q2_dot*subax(y) ... put this in column 6 of jcs array
-            jcs(k,6,j,i) = st_veloc(k)*st_ax(2);
-            
-            % dot product is orthogonal projection of calcaneus moment onto talocrural axis = M_talocrural
+            % compute JCS angular velocities from q1_dot and q2_dot used by OpenSim
+            alpha = deg2rad(st_angle(k))*st_ax; % this is the helical rotation around subtalar axis
+            if(st_angle(k)==0),st_angle(k)=0.001;end % helical2Cardan() needs something non-zero to work
+            % find the rotation matrix corresponding to the subtalar helical axis rotation
+            [dfx,inv,int] = helical2Cardan(alpha(1),alpha(2),alpha(3)); % returns angles based on zxy Euler sequence
+            Rz = [cos(dfx) sin(dfx) 0;-sin(dfx) cos(dfx) 0;0 0 1]; % these angles are in radians
+            Rx = [1 0 0;0 cos(inv) sin(inv);0 -sin(inv) cos(inv)]; % these angles are in radians
+            Ry = [cos(int) 0 -sin(int);0 1 0;sin(int) 0 cos(int)]; % these angles are in radians
+            Rtot = Ry*Rx*Rz;        % transforms from pre-subtalar rotation to post-subtalar rotation
+            tc_ax_rot = Rtot*tc_ax; % expresses the talocrural axis in components along rotated calcaneus unit vectors
+            w_atm = tc_veloc(k)*tc_ax_rot + st_veloc(k)*st_ax; % this is the total calcaneus angular velocity vector
+            % now the total angular velocity vector is known above, solve for JCS components
+            % start by grabbing current values of the JCS angles and form the coefficient matrix from the equations in supplementary material
+            dfx = jcs(k,1,j,i); inv = jcs(k,2,j,i); int = jcs(k,3,j,i); % these angles are in degrees
+            coef = [-cosd(inv)*sind(int) cosd(int);cosd(inv)*cosd(int) sind(int)]; % this is the coefficient matrix from equation (10) in supplementary material
+            % this is the equivalent of w_jcs = inv(coef)*w_atm{x;z} but inv() function can't be used since it's used as a variable
+            w_jcs = coef\w_atm([1 3]); % this gives us w_jcs(1) = dfx_dot and w_jcs(2) = inv_dot
+            % this gives us w_jcs(3) = int_dot
+            w_jcs = [w_jcs;w_atm(2)-w_jcs(1)*sind(inv)];
+            % save the values in the outcome array... w_jcs(1)=dfx_dot, w_jcs(2)=inv_dot ,w_jcs(3)=int_dot
+            jcs(k,4:6,j,i) = w_jcs;
+                        
+            % dot product is orthogonal projection of calcaneus anatomical (M) moment onto talocrural axis = M_talocrural
             jcs(k,7,j,i) = dot([ankle_MX(k),ankle_MY(k),ankle_MZ(k)],TIB_Z);
             % dot product is orthogonal projection of calcaneus moment onto subtalar axis = M_subtalar
             jcs(k,8,j,i) = dot([ankle_MX(k),ankle_MY(k),ankle_MZ(k)],ST_AX);
@@ -153,24 +187,19 @@ for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
             % dot product is orthogonal projection of calcaneus moment onto JCS y-axis = M_JCS_int
             jcs(k,11,j,i) = dot([ankle_MX(k),ankle_MY(k),ankle_MZ(k)],CAL_Y);
             
+            % dot product is orthogonal projection of calcaneus brace (B) moment onto talocrural axis = B_talocrural
+            jcs(k,12,j,i) = dot([brace_MX(k),brace_MY(k),brace_MZ(k)],TIB_Z);
+            % dot product is orthogonal projection of calcaneus moment onto subtalar axis = B_subtalar
+            jcs(k,13,j,i) = dot([brace_MX(k),brace_MY(k),brace_MZ(k)],ST_AX);
+            % B_JCS_dfx is identical to B_talocrural since talocrural axis is JCS Z-axis
+            jcs(k,14,j,i) = jcs(k,12,j,i);
+            % dot product is orthogonal projection of calcaneus moment onto JCS floating axis = B_JCS_inv
+            jcs(k,15,j,i) = dot([brace_MX(k),brace_MY(k),brace_MZ(k)],L);
+            % dot product is orthogonal projection of calcaneus moment onto JCS y-axis = B_JCS_int
+            jcs(k,16,j,i) = dot([brace_MX(k),brace_MY(k),brace_MZ(k)],CAL_Y);
+
         end
         
-        % extract the max values and their indices... 1=dfx, 2=inv, 3=int
-        [jcs_mx(1,j,i),jcs_mx_i(1,j,i)] = minmax(jcs(:,1,j,i));
-        [jcs_mx(2,j,i),jcs_mx_i(2,j,i)] = minmax(jcs(:,2,j,i));
-        [jcs_mx(3,j,i),jcs_mx_i(3,j,i)] = minmax(jcs(:,3,j,i));
-        % extract the max values and their indices... 4=dfx_dot, 5=inv_dot, 6=int_dot
-        [jcs_mx(4,j,i),jcs_mx_i(4,j,i)] = minmax(jcs(:,4,j,i));
-        [jcs_mx(5,j,i),jcs_mx_i(5,j,i)] = minmax(jcs(:,5,j,i));
-        [jcs_mx(6,j,i),jcs_mx_i(6,j,i)] = minmax(jcs(:,6,j,i));
-        % extract the max values and their indices... 7=M_talocrural, 8=M_subtalar
-        [jcs_mx(7,j,i),jcs_mx_i(7,j,i)] = minmax(jcs(:,7,j,i));
-        [jcs_mx(8,j,i),jcs_mx_i(8,j,i)] = minmax(jcs(:,8,j,i));
-        % extract the max values and their indices... 9=M_JCS_dfx, 10=M_JCS_inv, 11=M_JCS_int
-        [jcs_mx(9,j,i),jcs_mx_i(9,j,i)] = minmax(jcs(:,9,j,i));
-        [jcs_mx(10,j,i),jcs_mx_i(10,j,i)] = minmax(jcs(:,10,j,i));
-        [jcs_mx(11,j,i),jcs_mx_i(11,j,i)] = minmax(jcs(:,11,j,i));
-
         % keep the anatomical variables... already have whole vectors from the output file (j=trial, i=STUDY)
         % 1=q1, 2=q2, 3=q1_dot, 4=q2_dot
         atm(:,1,j,i) = tc_angle; % talocrural angle // OSim ankle joint axis
@@ -178,10 +207,61 @@ for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
         atm(:,3,j,i) = tc_veloc; % talocrural joint angular velocity // q1_dot
         atm(:,4,j,i) = st_veloc; % subtalar joint angular velocity // q2_dot
         % extract the max values and their indices... 1=q1, 2=q2, 3=q1_dot, 4=q2_dot
-        [atm_mx(1,j,i),atm_mx_i(1,j,i)] = minmax(atm(:,1,j,i));
-        [atm_mx(2,j,i),atm_mx_i(2,j,i)] = minmax(atm(:,2,j,i));
-        [atm_mx(3,j,i),atm_mx_i(3,j,i)] = minmax(atm(:,3,j,i));
-        [atm_mx(4,j,i),atm_mx_i(4,j,i)] = minmax(atm(:,4,j,i));
+        [atm_mx(1,j,i),atm_mx_i(1,j,i)] = max(atm(:,1,j,i));
+        [atm_mx(2,j,i),atm_mx_i(2,j,i)] = max(atm(:,2,j,i));
+        [atm_mx(3,j,i),atm_mx_i(3,j,i)] = max(atm(:,3,j,i));
+        [atm_mx(4,j,i),atm_mx_i(4,j,i)] = max(atm(:,4,j,i));
+
+        % extract the max values and their indices... 1=dfx, 2=inv, 3=int
+        [jcs_mx(1,j,i),jcs_mx_i(1,j,i)] = max(jcs(:,1,j,i));
+        [jcs_mx(2,j,i),jcs_mx_i(2,j,i)] = max(jcs(:,2,j,i));
+        [jcs_mx(3,j,i),jcs_mx_i(3,j,i)] = max(jcs(:,3,j,i));
+        % extract the max values and their indices... 4=dfx_dot, 5=inv_dot, 6=int_dot
+        [jcs_mx(4,j,i),jcs_mx_i(4,j,i)] = max(jcs(:,4,j,i));
+        [jcs_mx(5,j,i),jcs_mx_i(5,j,i)] = max(jcs(:,5,j,i));
+        [jcs_mx(6,j,i),jcs_mx_i(6,j,i)] = max(jcs(:,6,j,i));
+        
+        % extract the max values and their indices... 7=M_talocrural, 8=M_subtalar
+        %[jcs_mx(7,j,i),jcs_mx_i(7,j,i)] = max(jcs(:,7,j,i));
+        %[jcs_mx(8,j,i),jcs_mx_i(8,j,i)] = max(jcs(:,8,j,i));
+        % extract the value of the moments corresponding to the instant of peak angle
+        jcs_mx(7,j,i)   = jcs(atm_mx_i(1,j,i),7,j,i);
+        jcs_mx_i(7,j,i) = atm_mx_i(1,j,i);
+        jcs_mx(8,j,i)   = jcs(atm_mx_i(2,j,i),8,j,i);
+        jcs_mx_i(8,j,i) = atm_mx_i(2,j,i);
+        
+        % extract the max values and their indices... 9=M_JCS_dfx, 10=M_JCS_inv, 11=M_JCS_int
+        %[jcs_mx(9,j,i),jcs_mx_i(9,j,i)] = max(jcs(:,9,j,i));
+        %[jcs_mx(10,j,i),jcs_mx_i(10,j,i)] = max(jcs(:,10,j,i));
+        %[jcs_mx(11,j,i),jcs_mx_i(11,j,i)] = max(jcs(:,11,j,i));
+        % extract the value of the moments corresponding to the instant of peak angle
+        jcs_mx(9,j,i)    = jcs(jcs_mx_i(1,j,i),9,j,i);
+        jcs_mx_i(9,j,i)  = jcs_mx_i(1,j,i);
+        jcs_mx(10,j,i)   = jcs(jcs_mx_i(2,j,i),10,j,i);
+        jcs_mx_i(10,j,i) = jcs_mx_i(2,j,i);
+        jcs_mx(11,j,i)   = jcs(jcs_mx_i(3,j,i),11,j,i);
+        jcs_mx_i(11,j,i) = jcs_mx_i(3,j,i);
+
+        % extract the max values and their indices... 12=B_talocrural, 13=B_subtalar
+        %[jcs_mx(12,j,i),jcs_mx_i(12,j,i)] = max(jcs(:,12,j,i));
+        %[jcs_mx(13,j,i),jcs_mx_i(13,j,i)] = max(jcs(:,13,j,i));
+        % extract the value of the moments corresponding to the instant of peak angle
+        jcs_mx(12,j,i)   = jcs(atm_mx_i(1,j,i),12,j,i);
+        jcs_mx_i(12,j,i) = atm_mx_i(1,j,i);
+        jcs_mx(13,j,i)   = jcs(atm_mx_i(2,j,i),13,j,i);
+        jcs_mx_i(13,j,i) = atm_mx_i(2,j,i);
+
+        % extract the max values and their indices... 14=B_JCS_dfx, 15=B_JCS_inv, 16=B_JCS_int
+        %[jcs_mx(14,j,i),jcs_mx_i(14,j,i)] = max(jcs(:,14,j,i));
+        %[jcs_mx(15,j,i),jcs_mx_i(15,j,i)] = max(jcs(:,15,j,i));
+        %[jcs_mx(16,j,i),jcs_mx_i(16,j,i)] = max(jcs(:,16,j,i));
+        % extract the value of the moments corresponding to the instant of peak angle
+        jcs_mx(14,j,i)   = jcs(jcs_mx_i(1,j,i),14,j,i);
+        jcs_mx_i(14,j,i) = jcs_mx_i(1,j,i);
+        jcs_mx(15,j,i)   = jcs(jcs_mx_i(2,j,i),15,j,i);
+        jcs_mx_i(15,j,i) = jcs_mx_i(2,j,i);
+        jcs_mx(16,j,i)   = jcs(jcs_mx_i(3,j,i),16,j,i);
+        jcs_mx_i(16,j,i) = jcs_mx_i(3,j,i);
 
     end
     
@@ -210,15 +290,26 @@ for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
     out(10,2,i) =  std(jcs_mx(10,:,i)); % outcome(M_JCS_inv,stdev,STUDY=i)
     out(11,1,i) = mean(jcs_mx(11,:,i)); % outcome(M_JCS_int,mean,STUDY=i)
     out(11,2,i) =  std(jcs_mx(11,:,i)); % outcome(M_JCS_int,stdev,STUDY=i)
+    % 12=B_talocrural, 13=B_subtalar, 14=B_JCS_dfx, 15=B_JCS_inv, 16=B_JCS_int
+    out(12,1,i) = mean(jcs_mx(12,:,i)); % outcome(B_talocrural,mean,STUDY=i)
+    out(12,2,i) =  std(jcs_mx(12,:,i)); % outcome(B_talocrural,stdev,STUDY=i)
+    out(13,1,i) = mean(jcs_mx(13,:,i)); % outcome(B_subtalar,mean,STUDY=i)
+    out(13,2,i) =  std(jcs_mx(13,:,i)); % outcome(B_subtalar,stdev,STUDY=i)
+    out(14,1,i) = mean(jcs_mx(14,:,i)); % outcome(B_JCS_dfx,mean,STUDY=i)
+    out(14,2,i) =  std(jcs_mx(14,:,i)); % outcome(B_JCS_dfx,stdev,STUDY=i)
+    out(15,1,i) = mean(jcs_mx(15,:,i)); % outcome(B_JCS_inv,mean,STUDY=i)
+    out(15,2,i) =  std(jcs_mx(15,:,i)); % outcome(B_JCS_inv,stdev,STUDY=i)
+    out(16,1,i) = mean(jcs_mx(16,:,i)); % outcome(B_JCS_int,mean,STUDY=i)
+    out(16,2,i) =  std(jcs_mx(16,:,i)); % outcome(B_JCS_int,stdev,STUDY=i)
     % 12=q1, 13=q2, 14=q1_dot, 15=q2_dot
-    out(12,1,i) = mean(atm_mx(1,:,i)); % outcome(q1,mean,STUDY=i)
-    out(12,2,i) =  std(atm_mx(1,:,i)); % outcome(q1,stdev,STUDY=i)
-    out(13,1,i) = mean(atm_mx(2,:,i)); % outcome(q2,mean,STUDY=i)
-    out(13,2,i) =  std(atm_mx(2,:,i)); % outcome(q2,stdev,STUDY=i)
-    out(14,1,i) = mean(atm_mx(3,:,i)); % outcome(q1_dot,mean,STUDY=i)
-    out(14,2,i) =  std(atm_mx(3,:,i)); % outcome(q1_dot,stdev,STUDY=i)
-    out(15,1,i) = mean(atm_mx(4,:,i)); % outcome(q1_dot,mean,STUDY=i)
-    out(15,2,i) =  std(atm_mx(4,:,i)); % outcome(q1_dot,stdev,STUDY=i)
+    out(17,1,i) = mean(atm_mx(1,:,i)); % outcome(q1,mean,STUDY=i)
+    out(17,2,i) =  std(atm_mx(1,:,i)); % outcome(q1,stdev,STUDY=i)
+    out(18,1,i) = mean(atm_mx(2,:,i)); % outcome(q2,mean,STUDY=i)
+    out(18,2,i) =  std(atm_mx(2,:,i)); % outcome(q2,stdev,STUDY=i)
+    out(19,1,i) = mean(atm_mx(3,:,i)); % outcome(q1_dot,mean,STUDY=i)
+    out(19,2,i) =  std(atm_mx(3,:,i)); % outcome(q1_dot,stdev,STUDY=i)
+    out(20,1,i) = mean(atm_mx(4,:,i)); % outcome(q1_dot,mean,STUDY=i)
+    out(20,2,i) =  std(atm_mx(4,:,i)); % outcome(q1_dot,stdev,STUDY=i)
     
     %
     % plot the joint angles and velocities for visualization
@@ -258,13 +349,13 @@ for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
     %
     subplot(3,4,3);
     for j = 1:jmax
-        % plot q1 angle
+        % plot q1 angular velocity
         plot(atm(:,3,j,i),'LineWidth',0.4);hold on;
         plot(atm_mx_i(3,j,i),atm_mx(3,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
     end
     subplot(3,4,7);
     for j = 1:jmax
-        % plot q2 angle
+        % plot q2 angular velocity
         plot(atm(:,4,j,i),'LineWidth',0.4);hold on;
         plot(atm_mx_i(4,j,i),atm_mx(4,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
     end
@@ -286,14 +377,14 @@ for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
         plot(jcs(:,6,j,i),'LineWidth',0.4);hold on;
         plot(jcs_mx_i(6,j,i),jcs_mx(6,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
     end
-    subplot(3,4,1);title({['STUDY: ',STUDY{i}];'ATM angles (top -> bot: q1, q2)'});ylabel('degrees');
+    subplot(3,4,1);title({['STUDY: ',STUDY{i}],'ATM angles (top -> bot: q1, q2)'},'interpreter','none');ylabel('degrees');
     subplot(3,4,5);xlabel('Solution increment (0-150)');ylabel('degrees');
-    subplot(3,4,2);title({['STUDY: ',STUDY{i}];'JCS angles (top -> bot: dfx, inv, int)'});ylabel('degrees');
+    subplot(3,4,2);title({['STUDY: ',STUDY{i}],'JCS angles (top -> bot: dfx, inv, int)'},'interpreter','none');ylabel('degrees');
     subplot(3,4,6);ylabel('degrees');
     subplot(3,4,10);xlabel('Solution increment (0-150)');ylabel('degrees');
-    subplot(3,4,3);title({['STUDY: ',STUDY{i}];'ATM velocities (top -> bot: q1\_dot, q2\_dot)'});ylabel('degrees/sec');
+    subplot(3,4,3);title({['STUDY: ',STUDY{i}],'ATM velocities (top -> bot: q1\_dot, q2\_dot)'},'interpreter','none');ylabel('degrees/sec');
     subplot(3,4,7);xlabel('Solution increment (0-150)');ylabel('degrees/sec');
-    subplot(3,4,4);title({['STUDY: ',STUDY{i}];'JCS ang vel (top -> bot: dfx\_dot, inv\_dot, int\_dot)'});ylabel('degrees/sec');
+    subplot(3,4,4);title({['STUDY: ',STUDY{i}],'JCS ang vel (top -> bot: dfx\_dot, inv\_dot, int\_dot)'},'interpreter','none');ylabel('degrees/sec');
     subplot(3,4,8);ylabel('degrees/sec');
     subplot(3,4,12);xlabel('Solution increment (0-150)');ylabel('degrees/sec');
     
@@ -305,12 +396,20 @@ for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
         % plot talocrural anatomical moment
         plot(jcs(:,7,j,i),'LineWidth',0.4);hold on;
         plot(jcs_mx_i(7,j,i),jcs_mx(7,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
+        if sum(jcs(:,12,j,i)) ~= 0
+            plot(jcs(:,12,j,i),'--','LineWidth',0.4);hold on;
+            plot(jcs_mx_i(12,j,i),jcs_mx(12,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
+        end
     end
     subplot(3,2,3);
     for j = 1:jmax
         % plot subtalar anatomical moment
         plot(jcs(:,8,j,i),'LineWidth',0.4);hold on;
         plot(jcs_mx_i(8,j,i),jcs_mx(8,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
+        if sum(jcs(:,13,j,i)) ~= 0
+            plot(jcs(:,13,j,i),'--','LineWidth',0.4);hold on;
+            plot(jcs_mx_i(13,j,i),jcs_mx(13,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
+        end
     end
     %
     % plot the JCS moments for visualization
@@ -320,40 +419,108 @@ for i = [1 2 3 4 5 6]    % iterate on studies listed above in STUDY
         % plot JCS dorsiflexion moment
         plot(jcs(:,9,j,i),'LineWidth',0.4);hold on;
         plot(jcs_mx_i(9,j,i),jcs_mx(9,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
+        if sum(jcs(:,14,j,i)) ~= 0
+            plot(jcs(:,14,j,i),'--','LineWidth',0.4);hold on;
+            plot(jcs_mx_i(14,j,i),jcs_mx(14,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
+        end
     end
     subplot(3,2,4);
     for j = 1:jmax
         % plot JCS inversion moment
         plot(jcs(:,10,j,i),'LineWidth',0.4);hold on;
         plot(jcs_mx_i(10,j,i),jcs_mx(10,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
+        if sum(jcs(:,15,j,i)) ~= 0
+            plot(jcs(:,15,j,i),'--','LineWidth',0.4);hold on;
+            plot(jcs_mx_i(15,j,i),jcs_mx(15,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
+        end
     end
     subplot(3,2,6);
     for j = 1:jmax
         % plot JCS internal moment
         plot(jcs(:,11,j,i),'LineWidth',0.4);hold on;
         plot(jcs_mx_i(11,j,i),jcs_mx(11,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
+        if sum(jcs(:,16,j,i)) ~= 0
+            plot(jcs(:,16,j,i),'--','LineWidth',0.4);hold on;
+            plot(jcs_mx_i(16,j,i),jcs_mx(16,j,i),'.','MarkerSize',12,'MarkerFaceColor',[184/255 0 0]);
+        end
     end
-    subplot(3,2,1);title({['STUDY: ',STUDY{i}];'Anatomical Moments (top -> bot: TC, ST)'});ylabel('N.m');
+    subplot(3,2,1);title({['STUDY: ',STUDY{i}],'Anatomical Moments (top -> bot: TC, ST)'},'interpreter','none');ylabel('N.m');
     subplot(3,2,3);xlabel('Solution increment (0-150)');ylabel('N.m');
-    subplot(3,2,2);title({['STUDY: ',STUDY{i}];'JCS Moments (top -> bot: M\_dfx, M\_inv, M\_int)'});ylabel('N.m');
+    subplot(3,2,2);title({['STUDY: ',STUDY{i}],'JCS Moments (top -> bot: M\_dfx, M\_inv, M\_int)'},'interpreter','none');ylabel('N.m');
     subplot(3,2,4);ylabel('N.m');
     subplot(3,2,6);xlabel('Solution increment (0-150)');ylabel('N.m');
 
 end
 toc;
 
+% write the output in the order needed for Table in the manuscript
+fid = fopen('table_output.txt','w');
+% across 1001 trials... mean and stdev are then the only two scalar outcomes retained
+% store outcomes in a 3D array out(r,c,p) where...
+% r = (1-6) dfx, inv, int, dfx_dot, inv_dot, int_dot
+%     (7-11) M_talocrural, M_subtalar, M_JCS_dfx, M_JCS_inv, M_JCS_int
+%     (12-16) B_talocrural, B_subtalar, B_JCS_dfx, B_JCS_inv, B_JCS_int
+%     (17-20) q1, q2, q1_dot, q2_dot
+% c = 1 to 2 for mean and stdev
+% p = 1 to 6 for STUDY number
+% out = zeros(20,2,6);
+%
+% subtalar angles
+fprintf(fid,'Subtalar angles, velocities, moments (anatomy, brace)... cols = %s\n',cell2mat(STUDY));
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n',out(18,:,:));
+% subtalar velocities
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n',out(20,:,:));
+% subtalar moments - anatomy
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n',out(8,:,:));
+% subtalar moments - brace
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n\n',out(13,:,:));
+
+% talocrural angles
+fprintf(fid,'Talocrural angles, velocities, moments (anatomy, brace)... cols = %s\n',cell2mat(STUDY));
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n',out(17,:,:));
+% talocrural velocities
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n',out(19,:,:));
+% talocrural moments - anatomy
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n',out(7,:,:));
+% talocrural moments - brace
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n\n',out(12,:,:));
+
+% JCS dfx angles
+fprintf(fid,'JCS dorsiflexion(+) angles, velocities, moments (anatomy, brace)... cols = %s\n',cell2mat(STUDY));
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n',out(1,:,:));
+% JCS dfx velocities
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n',out(4,:,:));
+% JCS dfx moments - anatomy
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n',out(9,:,:));
+% JCS dfx moments - brace
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n\n',out(14,:,:));
+
+% JCS inv angles
+fprintf(fid,'JCS inversion(+) angles, velocities, moments (anatomy, brace)... cols = %s\n',cell2mat(STUDY));
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n',out(2,:,:));
+% JCS inv velocities
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n',out(5,:,:));
+% JCS inv moments - anatomy
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n',out(10,:,:));
+% JCS inv moments - brace
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n\n',out(15,:,:));
+
+% JCS int angles
+fprintf(fid,'JCS internal(+) angles, velocities, moments (anatomy, brace)... cols = %s\n',cell2mat(STUDY));
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n',out(3,:,:));
+% JCS int velocities
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n',out(6,:,:));
+% JCS int moments - anatomy
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n',out(11,:,:));
+% JCS int moments - brace
+fprintf(fid,'%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\t%.1f±%.1f\n\n',out(16,:,:));
+
+fclose(fid);
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % supporting functions
 %
-function [val,index] = minmax(v)
-% the purpose of this function is to return the upper or lower bound of vector
-% v subject to the constraint that a lower bound must not be the first data point
-[hi,ihi] = max(v); [lo,ilo] = min(v);
-if (abs(lo)>abs(hi) && ilo>1), val = lo; index = ilo;
-else, val = hi; index = ihi; end
-end
-
 function [flx,lat,axl] = helical2Cardan(alphax,alphay,alphaz)
 % input angles in radians, output angles in radians
 % v1 completed 18 Nov 2016
@@ -408,10 +575,10 @@ zrot = Rx'*zlocal;
 bz = [hx;hy;hz]'*zrot;
 
 % Cardan angles
-L = -unit(cross(by,[0 0 1]));
-flx = +asin(-dot(L,[0 1 0]));
-lat = +asin(dot([0 0 1],by));
-axl = -asin(dot(L,bz));
+L   = unit(cross(by,[0 0 1]));
+flx = asin(dot(L,[0 1 0]));
+lat = asin(dot([0 0 1],by));
+axl = asin(dot(L,bz));
 end
 
 function [alphax,alphay,alphaz] = CardanR2helical(Rtot)

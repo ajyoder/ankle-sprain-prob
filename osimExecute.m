@@ -1,6 +1,8 @@
 % clear all
 % close all
 
+PLOT_RESULTS = 1; % turn off to just run the model and write outputs
+
 %%% Baseline Defaults: these reproduce level landing simulation of (DeMers et al 2017)
 % % % pdi =     0.0    ; %degrees, platform incline
 % % % hi  =    0.300   ; %m, drop height
@@ -14,17 +16,18 @@
 % % % m1i =    0.000   ; %max_isometric_force (0 = 100% strength)
 % % % bi  =    NaN     ; %stiffness, "brace", scale factor 0=100%, +0.5=150% baseline, f > 1 = more stiff; set NaN for no brace 
 
+%%% Determinstic Input Parameters
 pdi =     30.0   ; 
 hi  =    0.300   ; 
 ei  =    50000000; 
 di  =    5.0     ; 
 fi  =    0.000   ; 
-ci  =    0.500   ; 
+ci  =    0.000   ; 
 rgi =    5.000   ; 
 j1i =  -34.000   ; 
-j2i =    0.000   ;
+j2i =   -5.720   ;
 m1i =    0.000   ;  
-bi  =    1.0   ;  
+bi  =    0.500   ;  
 
 DISABLE_REFLEXES = false;
 DISABLE_COACT = false;
@@ -309,12 +312,10 @@ writetimetable(TO,[dirN '\nessusOut2.csv']);
 
 
 %% PLOT RESULTS
-
-%%% Joint reactions:
-%%% <joint name>on<body>in<frame>_<component>. 
-
-%%%% COMPARE: inclined simulations published by DeMers
-% dirDeMers=[dirN '\demers\simulations of ankle co-activation and ankle stretch reflexes\'];
+if PLOT_RESULTS
+    
+%%%% VALIDATE: inclined simulations published by DeMers
+% dirDeMers=[dirN '\demers_2017_baseline\simulations of ankle co-activation and ankle stretch reflexes\'];
 % trialDeMers = 'incline_30.0_activation_0.0';
 % trialDeMers = 'incline_30.0_gain_5.0_delay_0.06';
 % fD = ReadOSIMtxt([dirDeMers trialDeMers '_forces.sto']);
@@ -324,8 +325,8 @@ writetimetable(TO,[dirN '\nessusOut2.csv']);
 % sD = ReadOSIMtxt([dirDeMers trialDeMers '_states.sto']);
 % sD=sD.data; statesD=sD.Properties.VariableNames';
 
-%%%% COMPARE: level landing simulation published by DeMers
-dirDeMers=[dirN '\demers\simulated landing on level ground\results\'];
+%%%% VALIDATE: level landing simulation published by DeMers
+dirDeMers=[dirN '\demers_2017_baseline\simulated landing on level ground\results\'];
 fD = ReadOSIMtxt([dirDeMers '\fwd_ForceReporter_forces.sto']);
 fD=fD.data; forcesD=fD.Properties.VariableNames';
 cD = ReadOSIMtxt([dirDeMers '\fwd_controls.sto']);
@@ -340,10 +341,10 @@ mass = model.getTotalMass(model.initSystem);
 weight = mass*9.81;
 
 figure; 
-Nr = 6;
+Nr = 4;
 Nc = 1;
 
-hax1=subplot(Nr,Nc,1); hold on; hold on; title(trial,'interpreter','none')
+hax1=subplot(Nr,Nc,1); hold on; hold on; title([trial ': Joint Kinematics (dotted = baseline model)'],'interpreter','none')
 p1=plot(t,kq.subtalar_angle_r,'g-');
 pb=plot(t,kq.ankle_angle_r,'b-');
 p1D=plot(tD,rad2deg(sD.subtalar_angle_r),'g:'); %DeMers verification 
@@ -352,7 +353,7 @@ XLM=get(hax1,'xlim');
 plot([XLM(1) XLM(2)],[0 0],'k-')
 legend([p1,pb],{'subtalar','ankle'})
 
-hax2=subplot(Nr,Nc,2); hold on; title(trial,'interpreter','none')
+hax2=subplot(Nr,Nc,2); hold on; title([trial ': Vertical Ground Reaction (dotted = baseline model)'],'interpreter','none')
 pf=plot(t,f.foot_floor_r_platform_force_Y/weight*-1,'b-');
 pfD=plot(tD,fD.foot_floor_r_platform_force_Y/weight*-1,'b:');
 XLM=get(hax2,'xlim');
@@ -363,29 +364,14 @@ passT=f.cubic_ankle_bushing_r_tibia_r_torque_X;
 passTD=fD.cubic_ankle_bushing_r_tibia_r_torque_X;
 passBC=f.brace_exp_bushing_r_tibia_r_torque_X;
 
-hax3=subplot(Nr,Nc,3); hold on; title([trial 'Passive Ankle Stiff (Nm)'],'interpreter','none')
+hax3=subplot(Nr,Nc,3); hold on; title([trial ': Passive Bushing Moment (frontal): Brace vs. Anatomy (Nm) (dotted = baseline model)'],'interpreter','none')
 hpt=plot(t,passT,'k-');
 hptD=plot(tD,passTD,'k:');
 % hbl=plot(t,passBL,'b-');
 hbc=plot(t,passBC,'g-');
 XLM=get(hax3,'xlim');
 plot([XLM(1) XLM(2)],[0 0],'k-')
-legend([hpt, hptD, hbc],{'passive','passiveD','brace-cubic'},'location','best')
-
-%% CONTROLS
-musEv={'per_long_r','per_brev_r','per_tert_r','ext_dig_r'};
-musInv={'ext_hal_r', 'flex_dig_r', 'flex_hal_r', 'tib_post_r'};
-
-hax4=subplot(Nr,Nc,4); hold on;
-title('controls')
-hc = plot(c.time, c{:,2:end});
-set(hc,{'displayname'},c.Properties.VariableNames(:,2:end)')
-set(hc,{'tag'},c.Properties.VariableNames(:,2:end)')
-hcD = plot(cD.time, cD{:,2:end});
-set(hcD,{'displayname'},cD.Properties.VariableNames(:,2:end)','linestyle',':')
-set(hcD,{'tag'},cD.Properties.VariableNames(:,2:end)','linestyle','-.')
-
-[ h_show,h_hide ] = FindObjs( hax4, [musEv musInv],'line');
+legend([hpt, hptD, hbc],{'anatomy','anatomyD','brace'},'location','best')
 
 %% STATES
 % figure; hold on;
@@ -393,8 +379,8 @@ set(hcD,{'tag'},cD.Properties.VariableNames(:,2:end)','linestyle','-.')
 statenames = s.Properties.VariableNames(:,2:end)';
 statenamesD = sD.Properties.VariableNames(:,2:end)';
 
-hax5=subplot(Nr,Nc,5); hold on
-title('states - muscle activation')
+hax5=subplot(Nr,Nc,4); hold on
+title('states - muscle activation (invertors & evertors)')
 plotlist1 = statenames(contains(statenames,'activation'));
 hs1 = plot(s.time, s{:,plotlist1});
 set(hs1,{'displayname'},plotlist1);
@@ -406,17 +392,4 @@ set(hs1D,{'tag'},plotlist1D);
 
 [ h_show,h_hide ] = FindObjs( hax5, [musEv musInv],'line');
 
-hax6=subplot(Nr,Nc,6); hold on
-title('states - muscle fiber length')
-plotlist2 = statenames(contains(statenames,'length'));
-hs2 = plot(s.time, s{:,plotlist2});
-set(hs2,{'displayname'},plotlist2);
-set(hs2,{'tag'},plotlist2);
-plotlist2D = statenamesD(contains(statenamesD,'length'));
-hs2D = plot(sD.time, sD{:,plotlist2D}, 'linestyle',':');
-set(hs2D,{'displayname'},plotlist2D);
-set(hs2D,{'tag'},plotlist2D);
-
-[ h_show,h_hide ] = FindObjs( hax6, [musEv musInv],'line');
-
-
+end

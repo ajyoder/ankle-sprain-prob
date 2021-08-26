@@ -1,5 +1,6 @@
 %%%%%
-%%%%%  This script will read in text files compiled from a NESSUS probabilistic analysis
+%%%%%  This script will read in NESSUS probabilistic analysis result text
+%%%%%  files and produce plots presented in the manuscript
 %%%%%  (*.smx) = contains the input-response values, one row per trial
 %%%%%  (*.zal) = sensitivity results (Z, U, CDF, columns of Sr, Su)
 %%%%%
@@ -18,21 +19,24 @@ addpath(genpath('.\common\'))
 %%  Script inputs & options  
 o1=[]; % response levels to extract (leave empty for none)
 p1=[.05 .5 .95]; % prob levels to extract (leave empty for none)
-trial=30; % study title for display
+trial=26; % study title for display
 XLABEL = 'Subtalar Supination (Inv, Deg)'; %name of reponse being analyzed
 PLOT_CORRELATION_SCATTER = 0;  % XY scatter plots corresponding to Tcorr results table
 COMPUTE_SENSITIVITIES = 1;
 
-%%%%%% Note: Manual variable definition required for (name, vu=mean, vs=sdev) 
-%%%%%% No easy way to parse these from NESSUS .dat..... but they are needed
-%%%%%% normalize prob sensitivity factors.  Comment out only 1 block
 
+
+
+%% Trial definition
 switch trial
-    
+%%%%%% Note: Manual definition is required for (vu=mean, vs=sdev) 
+%%%%%% No easy way to parse these from NESSUS setup files ..... but they are needed
+%%%%%% normalize prob sensitivity factors.
+
     case 26    
 %%%%%%% MCV26: (UN-BRACED) (incline, 0% co-activation)
-fileZAL='.\results\mc26_incline_c0_b0_r0\ankleSprain.zal';
-fileSMX='.\results\mc26_incline_c0_b0_r0\ankleSprain.smx';
+fileZAL='.\results\Study2_mc26_incline_c0_b0_r0\ankleSprain.zal';
+fileSMX='.\results\Study2_mc26_incline_c0_b0_r0\ankleSprain.smx';
 varsSMX={'caseid','hi','ei','di','fi','j1i','j2i','m1i','response'};
 namesSMX={'DH','GC','GD','SA','AP','AI','MS'};
 vu=[.30, 50002079, 5, 0.0000, -34, 0, 0.00]; %param, mean
@@ -40,8 +44,8 @@ vs=[.05, 5000205,  1, 0.0625,   5, 5, 0.05]; %param, std
 
     case 27
 %%%%%%% MCV27: (UN-BRACED) (incline, 10 REFLEX)
-fileZAL='.\results\mc27_incline_c0_b0_r10\ankleSprain.zal';
-fileSMX='.\results\mc27_incline_c0_b0_r10\ankleSprain.smx';
+fileZAL='.\results\Study3_mc27_incline_c0_b0_r10\ankleSprain.zal';
+fileSMX='.\results\Study3_mc27_incline_c0_b0_r10\ankleSprain.smx';
 varsSMX={'caseid','hi','ei','di','fi','rgi','j1i','j2i','m1i','response'};
 namesSMX={'DH','GC','GD','SA','MR','AP','AI','MS'};
 vu=[.30, 50002079, 5, 0.0000, 10, -34, 0, 0.00]; %param, mean
@@ -49,8 +53,8 @@ vs=[.05, 5000205,  1, 0.0625, 1,  5, 5, 0.05]; %param, std
 
     case 28
 %%%%%%% MCV28: (UN-BRACED) (incline, 60% co-activation)
-fileZAL='.\results\mc28_incline_c60_b0_r0\ankleSprain.zal';
-fileSMX='.\results\mc28_incline_c60_b0_r0\ankleSprain.smx';
+fileZAL='.\results\Study4_mc28_incline_c60_b0_r0\ankleSprain.zal';
+fileSMX='.\results\Study4_mc28_incline_c60_b0_r0\ankleSprain.smx';
 varsSMX={'caseid','hi','ei','di','fi','ci','j1i','j2i','m1i','response'};
 namesSMX={'DH','GC','GD','SA','MC','AP','AI','MS'};
 vu=[.30, 50002079, 5, 0.0000,  0.6, -34, 0, 0.00]; %param, mean
@@ -58,8 +62,8 @@ vs=[.05, 5000205,  1, 0.0625, 0.05,   5, 5, 0.05]; %param, std
 
     case 29
 %%%%%%% MCV29: (BRACED) (incline, 240% stiffness)
-fileZAL='.\results\mc29_incline_c0_b240_r0\ankleSprain.zal';
-fileSMX='.\results\mc29_incline_c0_b240_r0\ankleSprain.smx';
+fileZAL='.\results\Study5_mc29_incline_c0_b240_r0\ankleSprain.zal';
+fileSMX='.\results\Study5_mc29_incline_c0_b240_r0\ankleSprain.smx';
 varsSMX={'caseid','hi','ei','di','fi','j1i','j2i','m1i','bi','response'};
 namesSMX={'DH','GC','GD','SA','AP','AI','MS','SB'};
 vu=[.30, 50002079, 5, 0.0000, -34, 0, 0.00, 1.40]; %param, mean
@@ -67,8 +71,8 @@ vs=[.05, 5000205,  1, 0.0625,   5, 5, 0.05, 0.0625]; %param, std
 
     case 30
 %%%%%%% MCV30: (BRACED) (incline, brace + reflex + co-activation)
-fileZAL='.\results\mc30_incline_c20_b150_r5\ankleSprain.zal';
-fileSMX='.\results\mc30_incline_c20_b150_r5\ankleSprain.smx';
+fileZAL='.\results\Study6_mc30_incline_c20_b150_r5\ankleSprain.zal';
+fileSMX='.\results\Study6_mc30_incline_c20_b150_r5\ankleSprain.smx';
 varsSMX={'caseid','hi','ei','di','fi','ci','rgi','j1i','j2i','m1i','bi','response'};
 namesSMX={'DH','GC','GD','SA','MC','MR','AP','AI','MS','SB'};
 vu=[.30, 50002079, 5, 0.0000, 0.20, 5, -34, 0, 0.00, 0.50]; %param, mean
@@ -76,8 +80,8 @@ vs=[.05, 5000205,  1, 0.0625, 0.05, 1,   5, 5, 0.05, 0.0625]; %param, std
 
     case 31
 %%%%%%% MCV31: (UN-BRACED) (level, 0% co-activation)
-fileZAL='.\results\mc31_level_c0_b0_r0\ankleSprain.zal';
-fileSMX='.\results\mc31_level_c0_b0_r0\ankleSprain.smx';
+fileZAL='.\results\Study1_mc31_level_c0_b0_r0\ankleSprain.zal';
+fileSMX='.\results\Study1_mc31_level_c0_b0_r0\ankleSprain.smx';
 varsSMX={'caseid','hi','ei','di','fi','j1i','j2i','m1i','response'};
 namesSMX={'DH','GC','GD','SA','AP','AI','MS'};
 vu=[.30, 50002079, 5, 0.0000, -34, 0, 0.00]; %param, mean
@@ -184,9 +188,8 @@ end
 
 %% Plot sensitivity factors
 hfig3=figure('name',name,'position',[135         490        1599         420]); 
-hax1=subplot(1,3,1); hold on;
-hax2=subplot(1,3,2); hold on;
-hax3=subplot(1,3,3); hold on;
+hax1=subplot(1,2,1); hold on;
+hax2=subplot(1,2,2); hold on;
 
 z = Tzal.z;
 
@@ -230,29 +233,13 @@ YLM2=get(hax2,'ylim');
 plot(hax2,[O O],[YLM2(1) YLM2(2)],'k:','handlevisibility','off')
 end
 
-% Bar plot
-hbar = bar(hax3,bM);
-
-ngroups = size(bM, 1);
-nbars = size(bM, 2);
-bw = min(0.8, nbars/(nbars + 1.5));
-for i = 1:nbars
-    xb = (1:ngroups) - bw/2 + (2*i-1) * bw / (2*nbars); %bar group centers
-    heb = errorbar(hax3, xb', bM(:,i), bS(:,i), 'k','linestyle','none','capsize',0,'linewidth',2);
-end
-
-set([hax1,hax2,hax3],'Fontsize',12,'fontweight','bold')
+set([hax1,hax2],'Fontsize',12,'fontweight','bold')
 ylabel(hax1,name)
 title(hax1,'Sensitivity to Input Mean')
 title(hax2,'Sensitivity to Input Variance')
-legend(hbar,{'S_{\mu}','S_{\sigma}'})
-% set([hax1,hax2],'ylim',[-4.5 4.5])
 xlabel(hax1,XLABEL)
 xlabel(hax2,XLABEL)
 
-set(hax3,'xlim',[0 numel(varsPLOT)+1],'xtick',1:numel(varsPLOT),'xticklabel',namesPLOT,'XTickLabelRotation',30)
-title(hax3,'Probabilistic Sensitivity (Mean, 1SD)')
-legend(hbar,{'S_{\mu}','S_{\sigma}'})
 
 end
 

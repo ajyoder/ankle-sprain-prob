@@ -1108,22 +1108,6 @@
 									<!--Display opacity between 0.0 and 1.0-->
 									<opacity>0.47</opacity>
 								</DisplayGeometry>
-								<DisplayGeometry>
-									<!--Name of geometry file .vtp, .stl, .obj-->
-									<geometry_file>r_ankle_brace_xform_tibia.stl</geometry_file>
-									<!--Color used to display the geometry when visible-->
-									<color> 0.5 0.5 1</color>
-									<!--Name of texture file .jpg, .bmp-->
-									<texture_file />
-									<!--in body transform specified as 3 rotations (rad) followed by 3 translations rX rY rZ tx ty tz-->
-									<transform> 0 0 0 -0.049 -0.47 0.007</transform>
-									<!--Three scale factors for display purposes: scaleX scaleY scaleZ-->
-									<scale_factors> 1 1 1</scale_factors>
-									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded-->
-									<display_preference>0</display_preference>
-									<!--Display opacity between 0.0 and 1.0-->
-									<opacity>0.6</opacity>
-								</DisplayGeometry>
 							</objects>
 							<groups />
 						</GeometrySet>
@@ -1665,22 +1649,6 @@
 									<display_preference>4</display_preference>
 									<!--Display opacity between 0.0 and 1.0-->
 									<opacity>0.47</opacity>
-								</DisplayGeometry>
-								<DisplayGeometry>
-									<!--Name of geometry file .vtp, .stl, .obj-->
-									<geometry_file>r_ankle_brace_xform_calcn.stl</geometry_file>
-									<!--Color used to display the geometry when visible-->
-									<color> 0.5 0.5 1</color>
-									<!--Name of texture file .jpg, .bmp-->
-									<texture_file />
-									<!--in body transform specified as 3 rotations (rad) followed by 3 translations rX rY rZ tx ty tz-->
-									<transform> 0 0 0 0 0 0</transform>
-									<!--Three scale factors for display purposes: scaleX scaleY scaleZ-->
-									<scale_factors> 1 1 1</scale_factors>
-									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded-->
-									<display_preference>0</display_preference>
-									<!--Display opacity between 0.0 and 1.0-->
-									<opacity>0.6</opacity>
 								</DisplayGeometry>
 							</objects>
 							<groups />
@@ -5753,11 +5721,11 @@
 					<!--Orientation of bushing frame in body 2 as x-y-z, body fixed Euler rotations.-->
 					<orientation_body_2>0 0 0</orientation_body_2>
 					<!--Expression defining the contribution of theta_x deflection to the moment about body_2's x axis.The expression is a string and can not have any whitespace separating characters.-->
-					<Mx_expression>19.04190*theta_x-118.30432*theta_x^2+1352.12705*theta_x^3</Mx_expression>
+					<Mx_expression>14.28143*theta_x-66.54618*theta_x^2+570.42860*theta_x^3</Mx_expression>
 					<!--Expression defining the contribution of theta_y deflection to the moment about body_2's y axis.The expression is a string and can not have any whitespace separating characters.-->
-					<My_expression>7.23592*theta_y-40.64485*theta_y^2+516.22332*theta_y^3</My_expression>
+					<My_expression>5.42694*theta_y-22.86273*theta_y^2+217.78171*theta_y^3</My_expression>
 					<!--Expression defining the contribution of theta_z deflection to the moment about body_2's z axis.The expression is a string and can not have any whitespace separating characters.-->
-					<Mz_expression>11.96374*theta_z+62.99807*theta_z^2+269.42463*theta_z^3</Mz_expression>
+					<Mz_expression>8.97281*theta_z+35.43642*theta_z^2+113.66352*theta_z^3</Mz_expression>
 					<!--Expression defining the contribution of x deflection to the force in the x direction.The expression is a string and can not have any whitespace separating characters.-->
 					<Fx_expression>0.0</Fx_expression>
 					<!--Expression defining the contribution of y deflection to the force in the y direction.The expression is a string and can not have any whitespace separating characters.-->
@@ -8969,7 +8937,7 @@
 					<!--Compute muscle dynamics ignoring activation dynamics. Activation is equivalent to excitation.-->
 					<ignore_activation_dynamics>false</ignore_activation_dynamics>
 					<!--Assumed activation level if none is assigned.-->
-					<default_activation>0.4661</default_activation>
+					<default_activation>0</default_activation>
 					<!--Assumed fiber length, unless otherwise assigned.-->
 					<default_fiber_length>0.1</default_fiber_length>
 					<!--time constant for ramping up muscle activation-->
@@ -9075,7 +9043,7 @@
 					<!--Compute muscle dynamics ignoring activation dynamics. Activation is equivalent to excitation.-->
 					<ignore_activation_dynamics>false</ignore_activation_dynamics>
 					<!--Assumed activation level if none is assigned.-->
-					<default_activation>0.4661</default_activation>
+					<default_activation>0</default_activation>
 					<!--Assumed fiber length, unless otherwise assigned.-->
 					<default_fiber_length>0.1</default_fiber_length>
 					<!--time constant for ramping up muscle activation-->
@@ -9177,7 +9145,7 @@
 					<!--Compute muscle dynamics ignoring activation dynamics. Activation is equivalent to excitation.-->
 					<ignore_activation_dynamics>false</ignore_activation_dynamics>
 					<!--Assumed activation level if none is assigned.-->
-					<default_activation>0.4661</default_activation>
+					<default_activation>0</default_activation>
 					<!--Assumed fiber length, unless otherwise assigned.-->
 					<default_fiber_length>0.1</default_fiber_length>
 					<!--time constant for ramping up muscle activation-->
@@ -9357,7 +9325,7 @@
 					<!--Compute muscle dynamics ignoring activation dynamics. Activation is equivalent to excitation.-->
 					<ignore_activation_dynamics>false</ignore_activation_dynamics>
 					<!--Assumed activation level if none is assigned.-->
-					<default_activation>0.5</default_activation>
+					<default_activation>0</default_activation>
 					<!--Assumed fiber length, unless otherwise assigned.-->
 					<default_fiber_length>0.1</default_fiber_length>
 					<!--time constant for ramping up muscle activation-->
@@ -9459,7 +9427,7 @@
 					<!--Compute muscle dynamics ignoring activation dynamics. Activation is equivalent to excitation.-->
 					<ignore_activation_dynamics>false</ignore_activation_dynamics>
 					<!--Assumed activation level if none is assigned.-->
-					<default_activation>0.5</default_activation>
+					<default_activation>0</default_activation>
 					<!--Assumed fiber length, unless otherwise assigned.-->
 					<default_fiber_length>0.1</default_fiber_length>
 					<!--time constant for ramping up muscle activation-->
@@ -9545,7 +9513,7 @@
 					<!--Compute muscle dynamics ignoring activation dynamics. Activation is equivalent to excitation.-->
 					<ignore_activation_dynamics>false</ignore_activation_dynamics>
 					<!--Assumed activation level if none is assigned.-->
-					<default_activation>0.5</default_activation>
+					<default_activation>0</default_activation>
 					<!--Assumed fiber length, unless otherwise assigned.-->
 					<default_fiber_length>0.1</default_fiber_length>
 					<!--time constant for ramping up muscle activation-->
@@ -9643,7 +9611,7 @@
 					<!--Compute muscle dynamics ignoring activation dynamics. Activation is equivalent to excitation.-->
 					<ignore_activation_dynamics>false</ignore_activation_dynamics>
 					<!--Assumed activation level if none is assigned.-->
-					<default_activation>0.5</default_activation>
+					<default_activation>0</default_activation>
 					<!--Assumed fiber length, unless otherwise assigned.-->
 					<default_fiber_length>0.1</default_fiber_length>
 					<!--time constant for ramping up muscle activation-->
@@ -9745,7 +9713,7 @@
 					<!--Compute muscle dynamics ignoring activation dynamics. Activation is equivalent to excitation.-->
 					<ignore_activation_dynamics>false</ignore_activation_dynamics>
 					<!--Assumed activation level if none is assigned.-->
-					<default_activation>0.4661</default_activation>
+					<default_activation>0</default_activation>
 					<!--Assumed fiber length, unless otherwise assigned.-->
 					<default_fiber_length>0.1</default_fiber_length>
 					<!--time constant for ramping up muscle activation-->
@@ -10787,16 +10755,16 @@
 					<FunctionSet name="ControlFunctions">
 						<objects>
 							<Constant>
-								<value>0.4661</value>
+								<value>0</value>
 							</Constant>
 							<Constant>
-								<value>0.4661</value>
+								<value>0</value>
 							</Constant>
 							<Constant>
-								<value>0.4661</value>
+								<value>0</value>
 							</Constant>
 							<Constant>
-								<value>0.4661</value>
+								<value>0</value>
 							</Constant>
 						</objects>
 						<groups />
@@ -10811,16 +10779,16 @@
 					<FunctionSet name="ControlFunctions">
 						<objects>
 							<Constant>
-								<value>0.5</value>
+								<value>0</value>
 							</Constant>
 							<Constant>
-								<value>0.5</value>
+								<value>0</value>
 							</Constant>
 							<Constant>
-								<value>0.5</value>
+								<value>0</value>
 							</Constant>
 							<Constant>
-								<value>0.5</value>
+								<value>0</value>
 							</Constant>
 						</objects>
 						<groups />
