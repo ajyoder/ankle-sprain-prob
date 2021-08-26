@@ -19,7 +19,11 @@ Installation:
    You must ensure that you use the same version of Visual Studio as used to compile your installation of OpenSim v3.3
    Which can be confirmed in C:\OpenSim 3.3\sdk\buildinfo.txt
 
-4) From this GitHub project, run Matlab Script "osimExecute.m" 
+4) From this GitHub project, run Matlab Script "osimExecute.m" to run a single forward dynamic simulation with the inputs defined
+   in the header. This model can be integrated with automation software (e.g. NESSUS), or built in MATLAB functionality, for batch simulation
+   
+5) See script headers of "parse_mechanics_JCS.m" and "plot_Nessus_CDF_Sensitivity.m" for usage
+
 
 Acknowledgments:
 
